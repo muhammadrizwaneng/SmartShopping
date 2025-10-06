@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -6,191 +6,402 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-} from "react-native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faStar, faTruck } from "@fortawesome/free-solid-svg-icons";
+  TextInput,
+  Modal,
+  Alert,
+} from 'react-native';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {faStar, faTruck} from '@fortawesome/free-solid-svg-icons';
+import ApiConfig from '../../config/api-config';
+import axios from 'axios';
+import {useIsFocused} from '@react-navigation/native';
 
 const ProductDetailScreen = () => {
-  const product = {
-    name: "Gaming Laptop",
-    brand: "Brand",
-    description:
-      "High-performance gaming laptop with Intel i9, RTX 4080, 32GB RAM, 1TB SSD.",
-    category: "Electronics",
-    subCategory: "Computers",
-    tags: ["Gaming", "Laptop"],
-    base_price: 1299.99,
-    discount_price: 899.99,
-    discount_percent: "31% OFF",
-    rating: 4.5,
-    reviews_count: 128,
-    main_image_url:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-    gallery_images: [
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-    ],
-    variants: [
-      { color: 'Black', selected: true },
-      { color: 'Silver', selected: false },
-      { color: 'White', selected: false },
-    ],
-    sizes: [
-      { size: '256GB', selected: false },
-      { size: '512GB', selected: true },
-    ],
-    stock: 12,
-    features: [
-      { label: "Processor", value: "Intel Core i9" },
-      { label: "Graphics", value: "NVIDIA RTX 4080" },
-      { label: "RAM", value: "32GB DDR5" },
-      { label: "Storage", value: "1TB SSD" },
-    ],
-    delivery_options: ["Standard", "Express", "Same Day"],
+  const [productData, setProductData] = useState(null);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [activeMainImage, setActiveMainImage] = useState(null);
+  const [appliedDiscount, setAppliedDiscount] = useState(null); 
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+  const [discountInput, setDiscountInput] = useState(''); 
+  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const isFocused = useIsFocused();
+
+  const fetchProductDetails = async () => {
+    const PRODUCT_ID = '68e360dd980706ff128da73e';
+    // const PRODUCT_ID = '68e35fad980706ff128da73d';
+    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_PRODUCTS}/${PRODUCT_ID}`;
+
+    try {
+      const response = await axios.get(URL);
+      if (response.status === 200) {
+        setProductData(response.data);
+        setActiveMainImage(response.data?.main_image_url);
+        return;
+      }
+    } catch (error) {
+      console.error(
+        'Failed to fetch product details:',
+        error.response?.data || error.message,
+      );
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    fetchProductDetails();
+  }, [isFocused]);
+
+  const handleSelectSuggestion = (percentage) => {
+    setDiscountInput(String(percentage));
+  };
+
+  const getDisplayPrice = () => {
+    let price;
+    if (productData?.has_variants && productData.variants?.length) {
+
+      if(productData.variants[selectedVariantIndex]?.discountprice != null ){
+        price = productData.variants[selectedVariantIndex]?.discountprice
+      } else {
+        price = productData.variants[selectedVariantIndex]?.price;
+      }
+    } else {
+      if(productData?.discount_percent != null){
+        price = productData?.discount_price
+      } else {
+        price = productData?.price;
+      }
+      
+    }
+    // console.log("=-=productData",productData)
+    // if (price !== null && appliedDiscount?.discountprice) {
+    //   return Math.max(0, price - appliedDiscount.discountprice);
+    // }
+
+    return price;
+  }
+
+  const getDisplayStock = () => {
+    if (productData?.has_variants && productData.variants?.length) {
+      return productData.variants.reduce(
+        (total, variant) => total + (variant.stock || 0),
+        0,
+      );
+    }
+    return productData?.stock;
+  };
+
+  const displayPrice = getDisplayPrice();
+  const displayStock = getDisplayStock();
+  const isInStock = displayStock > 0;
+  
+  const handleVariantSelect = index => {
+    setSelectedVariantIndex(index);
+  };
+  
+  if (!productData) {
+    return <Text style={{padding: 20}}>Loading product details...</Text>;
+  }
+
+  const handleGalleryImageSelect = url => {
+    setActiveMainImage(url);
+  };
+
+  const handleApplyDiscount = async () => {
+    const discountPercentage = parseFloat(discountInput);
+    let selectedVariantName:any
+    if(productData?.has_variants){
+      selectedVariantName = getSelectedVariantName();
+    }
+    if (isNaN(discountPercentage) || discountPercentage <= 0 || discountPercentage > 100) {
+      Alert.alert('Invalid Discount', 'Please enter a valid percentage between 1 and 100.');
+      return;
+    }
+
+    const currentPrice = getDisplayPrice();
+    const currentProductId = productData?._id; 
+
+    if (!currentProductId || isApplyingDiscount) return;
+      // const discountAmount = currentPrice * (discountPercentage / 100);
+
+
+    setIsApplyingDiscount(true);
+
+    try {
+      // Calculate discount amount
+      const payload = {
+        product_id: productData?._id, 
+        discount_percent: discountPercentage,
+        variant_name: selectedVariantName
+      };
+
+      const response = await axios.post(`${ApiConfig.BASE_URL}${ApiConfig.APPLY_DISCOUNT}`,payload)
+      if(response?.data?.success == true){
+        const mockResponse = {
+            success: true,
+            discount_amount: response?.data, 
+            discount_percentage: discountPercentage,
+            message: `${discountPercentage}% discount applied!`
+        };
+        setAppliedDiscount(mockResponse);
+        fetchProductDetails();
+        setIsModalVisible(false);
+        setDiscountInput(''); // Clear input after applying
+        // Alert.alert('Success', mockResponse.message);
+      }
+      
+    } catch (error) {
+      console.error('Failed to apply discount:', error);
+      setAppliedDiscount(null); 
+      Alert.alert('Error', 'Discount could not be applied. Please try again.');
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
+
+   const getSelectedVariantName = () => {
+    if (productData?.has_variants && productData.variants?.length) {
+      return productData.variants[selectedVariantIndex]?.name;
+    }
+    return null;
+  };
+
+  const renderDiscountModalContent = () => {
+    const suggestions = [5, 10, 15, 20, 50, 70];
+    
+    return (
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Apply Discount</Text>
+        
+        <Text style={styles.modalSubtitle}>
+          Enter discount percentage
+        </Text>
+
+        {/* Input Field */}
+        <TextInput
+          style={styles.discountTextInputModal}
+          placeholder="Enter % value (1-100)"
+          placeholderTextColor="#999"
+          keyboardType="numeric"
+          value={discountInput}
+          onChangeText={text => setDiscountInput(text.replace(/[^0-9.]/g, ''))}
+        />
+
+        {/* Quick Suggestions */}
+        <Text style={styles.suggestionsTitle}>Quick Suggestions</Text>
+        <View style={styles.suggestionsContainer}>
+          {suggestions.map((percent) => (
+            <TouchableOpacity
+              key={percent}
+              style={styles.suggestionChip}
+              onPress={() => setDiscountInput(String(percent))}
+            >
+              <Text style={styles.suggestionText}>{percent}%</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.modalButtonsContainer}>
+          <TouchableOpacity 
+            style={[styles.modalButton, styles.cancelButton]}
+            onPress={() => {
+              setIsModalVisible(false);
+              setDiscountInput('');
+            }}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.modalButton, styles.applyButton, 
+                    (!discountInput || isApplyingDiscount) && styles.applyButtonDisabled]}
+            onPress={handleApplyDiscount}
+            disabled={!discountInput || isApplyingDiscount}
+          >
+            <Text style={styles.applyButtonText}>
+              {isApplyingDiscount ? 'Applying...' : 'Apply Discount'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Top Background Container (Beige) */}
       <View style={styles.topSectionBackground}>
-
-        <View style={{height:250,marginBottom:20}}>
-            <Image
-            source={{ uri: product.main_image_url }}
+        <View style={{height: 250, marginBottom: 20}}>
+          <Image
+            source={{uri: activeMainImage}}
             style={styles.mainImage}
             resizeMode="contain"
-            />
+          />
         </View>
-
-        {/* Gallery/Thumbnails */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.galleryContainer}>
-          {product.gallery_images.map((url, index) => (
-            <TouchableOpacity key={index} style={styles.thumbnailWrapper}>
-              <Image
-                source={{ uri: url }}
-                style={styles.thumbnailImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          ))}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.galleryContainer}>
+          {[productData?.main_image_url, ...(productData?.gallery_images || [])]
+            .filter(url => url)
+            .map((url, index) => {
+              const isSelected = url === activeMainImage;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleGalleryImageSelect(url)}
+                  style={[
+                    styles.thumbnailWrapper,
+                    isSelected && styles.thumbnailWrapperSelected,
+                  ]}>
+                  <Image
+                    source={{uri: url}}
+                    style={styles.thumbnailImage}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              );
+            })}
         </ScrollView>
       </View>
-
-      {/* Product Info (White Card) */}
+      
       <View style={styles.infoContainer}>
-        <Text style={styles.productName}>{product.name}</Text>
-
-        {/* Brand & Category Breadcrumbs */}
-        <Text style={styles.brand}>{product.brand}</Text>
+        <Text style={styles.productName}>{productData?.name}</Text>
+        <Text style={styles.brand}>{productData?.brand}</Text>
         <Text style={styles.categoryBreadcrumb}>
-          {product.category} {'>'} {product.subCategory}
+          {productData?.category_name || 'Category Name Lookup Needed'}
         </Text>
 
         {/* Tags/Chips */}
         <View style={styles.tagsContainer}>
-          {product.tags.map((tag, index) => (
-            <Text key={index} style={styles.tagChip}>{tag}</Text>
+          {productData?.tags?.map((tag, index) => (
+            <Text key={index} style={styles.tagChip}>
+              {tag}
+            </Text>
           ))}
         </View>
-
+        
         {/* Price Row */}
         <View style={styles.priceRow}>
           <View style={styles.priceTextGroup}>
-            <Text style={styles.discountPrice}>${product.discount_price}</Text>
-            <Text style={styles.basePrice}>${product.base_price}</Text>
+            <Text style={styles.discountPrice}>
+              {displayPrice ? `$${displayPrice.toFixed(2)}` : 'Price Varies'}
+            </Text>
+            
+            {productData?.has_variants && productData.variants[selectedVariantIndex]?.discountprice != null && (
+              <Text style={styles.basePrice}>
+                {productData?.has_variants 
+                  ? `$${productData.variants[selectedVariantIndex]?.price.toFixed(2)}` 
+                  : `$${productData?.price.toFixed(2)}`
+                }
+              </Text>
+            )}
+
+            {productData?.price && productData?.price > displayPrice && !appliedDiscount && (
+              <Text style={styles.basePrice}>
+                ${productData?.price.toFixed(2)}
+              </Text>
+            )}
           </View>
-          <View style={styles.discountChip}>
-            <Text style={styles.discountText}>{product.discount_percent}</Text>
-          </View>
+          
+          {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent != null) || (productData?.discount_percent)) && (
+            <View style={styles.discountChip}>
+              <Text style={styles.discountText}>
+                {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent) || (productData?.discount_percent))}% OFF
+              </Text>
+            </View>
+          )}
         </View>
         
-        {/* Rating and Reviews */}
-        <View style={styles.ratingRow}>
-          {[...Array(5)].map((_, i) => (
-            <FontAwesomeIcon 
-              key={i}
-              icon={faStar} 
-              size={14} 
-              color={i < Math.floor(product.rating) ? '#fbbf24' : '#ccc'} 
-              style={{ marginRight: 2 }}
-            />
-          ))}
-          <Text style={styles.reviewsText}>({product.reviews_count} reviews)</Text>
+        {/* Discount Button Section */}
+        <View style={styles.discountInputRow}>
+          <TouchableOpacity
+            style={styles.addDiscountButton}
+            onPress={() => setIsModalVisible(true)} 
+          >
+            <Text style={styles.addDiscountButtonText}>
+              {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent) || (productData?.discount_percent)) ? 'Edit Discount' : 'Add Discount'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Variants Section */}
-        <Text style={styles.variantTitle}>Variants</Text>
-        <View style={styles.variantsContainer}>
-          {product.variants.map((v, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={[
-                styles.variantChip, 
-                v.selected && styles.variantChipSelected
-              ]}
-            >
-              <Text style={[
-                styles.variantText,
-                v.selected && styles.variantTextSelected
-              ]}>
-                {v.color}
-              </Text>
-            </TouchableOpacity>
+        <View style={styles.ratingRow}>
+          {[...Array(5)].map((_, i) => (
+            <FontAwesomeIcon
+              key={i}
+              icon={faStar}
+              size={14}
+              color={
+                i < Math.floor(productData?.rating || 0) ? '#fbbf24' : '#ccc'
+              }
+              style={{marginRight: 2}}
+            />
           ))}
+          <Text style={styles.reviewsText}>
+            ({productData?.reviews_count || 0} reviews)
+          </Text>
         </View>
-        
-        {/* Size/Stock Section */}
-        <View style={styles.sizeStockRow}>
-          <Text style={styles.variantTitle}>Size</Text>
-          <View style={styles.sizesContainer}>
-            {product.sizes.map((s, index) => (
-              <TouchableOpacity 
-                key={index} 
-                style={[
-                  styles.variantChip, 
-                  s.selected && styles.variantChipSelected
-                ]}
-              >
-                <Text style={[
-                  styles.variantText,
-                  s.selected && styles.variantTextSelected
-                ]}>
-                  {s.size}
-                </Text>
-              </TouchableOpacity>
-            ))}
+
+        {productData?.has_variants && productData?.variants?.length > 0 && (
+          <View>
+            <Text style={styles.variantTitle}>Variants</Text>
+            <View style={styles.variantsContainer}>
+              {productData?.variants.map((v, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleVariantSelect(index)}
+                  style={[
+                    styles.variantChip,
+                    index === selectedVariantIndex &&
+                      styles.variantChipSelected,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.variantText,
+                      index === selectedVariantIndex &&
+                        styles.variantTextSelected,
+                    ]}>
+                    {v.name} ({v.stock} left)
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
+        )}
+        
+        <View style={[styles.sizeStockRow]}>
           <View style={styles.stockContainer}>
-            <Text style={styles.stockText}>✓ In Stock</Text>
-            <Text style={styles.stockTextSmall}>({product.stock} left)</Text>
+            <Text style={styles.stockText}>
+              {isInStock ? '✓ In Stock' : '✕ Out of Stock'}
+            </Text>
+            <Text style={styles.stockTextSmall}>
+              {productData?.has_variants
+                ? `(${displayStock} total)`
+                : `(${displayStock} left)`}
+            </Text>
           </View>
         </View>
-        
-        
-        {/* Features (Original Code Section - Kept for structure/completeness) */}
+
+        {/* Features */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Features</Text>
-          {product.features.map((f, index) => (
+          {productData?.features?.map((f, index) => (
             <View key={index} style={styles.featureRow}>
               <Text style={styles.featureLabel}>{f.label}</Text>
               <Text style={styles.featureValue}>{f.value}</Text>
             </View>
           ))}
         </View>
-
-        {/* Delivery Options (Original Code Section) */}
+        
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Delivery Options</Text>
           <View style={styles.deliveryRow}>
-            {product.delivery_options.map((option, index) => (
+            {productData?.delivery_options?.map((option, index) => (
               <View key={index} style={styles.deliveryChip}>
                 <FontAwesomeIcon
                   icon={faTruck}
                   size={14}
                   color="#6366F1"
-                  style={{ marginRight: 5 }}
+                  style={{marginRight: 5}}
                 />
                 <Text style={styles.deliveryText}>{option}</Text>
               </View>
@@ -198,38 +409,46 @@ const ProductDetailScreen = () => {
           </View>
         </View>
       </View>
-
-      {/* Add to Cart */}
+      
       <View style={styles.footer}>
         <TouchableOpacity style={styles.cartButton}>
           <Text style={styles.cartButtonText}>Add to Cart</Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Centered Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.centeredModalOverlay}>
+          <View style={styles.centeredModalView}>
+            {renderDiscountModalContent()}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  // === GLOBAL/LAYOUT STYLES ===
-  container: { 
-    flex: 1, 
-    backgroundColor: "#F9F5EF" 
+  container: {
+    flex: 1,
+    backgroundColor: '#F9F5EF',
   },
-  
-  // === TOP SECTION STYLES (MATCHING IMAGE) ===
   topSectionBackground: {
-    backgroundColor: "#F9F5EF",
-    paddingTop: 30, 
+    backgroundColor: '#F9F5EF',
+    paddingTop: 30,
     paddingBottom: 20,
   },
-  mainImage: { 
-    width: "100%", // <--- THIS IS THE CHANGE
-    height: "100%", 
-    alignSelf: 'center', 
-    marginBottom: 20 
+  mainImage: {
+    width: '100%',
+    height: '100%',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
-  
-  // Gallery Styles
   galleryContainer: {
     paddingHorizontal: 16,
   },
@@ -237,48 +456,44 @@ const styles = StyleSheet.create({
     width: 80,
     height: 60,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderWidth: 1,
     borderColor: '#E7D7C7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   thumbnailImage: {
     width: '100%',
     height: '100%',
   },
-
-  // === INFO CONTAINER STYLES (MATCHING IMAGE) ===
-  infoContainer: { 
+  infoContainer: {
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginTop: -30,
     zIndex: 10,
     paddingTop: 25,
   },
-  productName: { 
-    fontSize: 24, 
-    fontWeight: "bold", 
-    color: "#111", 
-    marginBottom: 4 
+  productName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111',
+    marginBottom: 4,
   },
-  brand: { 
-    fontSize: 16, 
-    color: "#333", 
-    fontWeight: '500' 
+  brand: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
   },
-  categoryBreadcrumb: { 
-    fontSize: 14, 
-    color: "#666", 
-    marginTop: 0, 
-    marginBottom: 10 
+  categoryBreadcrumb: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 0,
+    marginBottom: 10,
   },
-  
-  // Tags Styles
   tagsContainer: {
     flexDirection: 'row',
     marginBottom: 15,
@@ -292,8 +507,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontSize: 13,
   },
-  
-  // Price Styles
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -304,16 +517,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
   },
-  discountPrice: { 
-    fontSize: 28, 
-    fontWeight: "bold", 
-    color: "#111", 
+  discountPrice: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111',
     marginRight: 10,
   },
   basePrice: {
     fontSize: 18,
-    color: "#999",
-    textDecorationLine: "line-through",
+    color: '#999',
+    textDecorationLine: 'line-through',
   },
   discountChip: {
     backgroundColor: '#D72A60',
@@ -326,28 +539,56 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
-  
-  // Rating Styles
-  ratingRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 20 
+  discountInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  reviewsText: { 
-    marginLeft: 6, 
-    fontSize: 14, 
-    color: "#666" 
+  addDiscountButton: {
+    backgroundColor: '#BD0B0B',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    // flex: 1,
+    alignSelf:"flex-start"
   },
-
-  // Variants Styles
-  variantTitle: { 
-    fontSize: 16, 
-    fontWeight: '600', 
-    color: '#111', 
-    marginBottom: 8 
+  addDiscountButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    alignSelf:"flex-start"
+  },
+  discountStatusRow: {
+    marginBottom: 20,
+  },
+  discountStatusTextSuccess: {
+    fontSize: 14,
+    color: '#38A169',
+    fontWeight: '600',
+  },
+  discountStatusTextHint: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  reviewsText: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: '#666',
+  },
+  variantTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111',
+    marginBottom: 8,
   },
   variantsContainer: {
-    flexDirection: 'row',
     marginBottom: 20,
   },
   variantChip: {
@@ -358,10 +599,11 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderWidth: 1,
     borderColor: '#F5F5F5',
+    marginBottom: 10,
+    alignSelf: 'flex-start',
   },
   variantChipSelected: {
     backgroundColor: '#ef8402ff',
-    // borderColor: '#6D4F35',
   },
   variantText: {
     color: '#333',
@@ -370,22 +612,15 @@ const styles = StyleSheet.create({
   variantTextSelected: {
     color: '#fff',
   },
-
-  // Size and Stock Styles
   sizeStockRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
     paddingBottom: 20,
   },
-  sizesContainer: {
-    flexDirection: 'row',
-    marginRight: 20,
-  },
   stockContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 'auto', 
   },
   stockText: {
     color: '#38A169',
@@ -397,46 +632,152 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 4,
   },
-
-  // === ORIGINAL STYLES (KEPT FOR FEATURES/DELIVERY) ===
-  section: { marginTop: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 10 },
+  section: {marginTop: 20},
+  sectionTitle: {fontSize: 18, fontWeight: '600', marginBottom: 10},
   featureRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: '#eee',
     paddingVertical: 8,
   },
-  featureLabel: { fontSize: 14, color: "#666" },
-  featureValue: { fontSize: 14, fontWeight: "500", color: "#111" },
-  deliveryRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 6 },
+  featureLabel: {fontSize: 14, color: '#666'},
+  featureValue: {fontSize: 14, fontWeight: '500', color: '#111'},
+  deliveryRow: {flexDirection: 'row', flexWrap: 'wrap', marginTop: 6},
   deliveryChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ede9fe",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ede9fe',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginRight: 8,
     marginTop: 6,
   },
-  deliveryText: { color: "#6366F1", fontSize: 13, fontWeight: "500" },
-  
-  // Footer/Cart Button
+  deliveryText: {color: '#6366F1', fontSize: 13, fontWeight: '500'},
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    backgroundColor: "#fff",
+    borderTopColor: '#eee',
+    backgroundColor: '#fff',
   },
   cartButton: {
-    backgroundColor: "#6366F1",
+    backgroundColor: '#6366F1',
     paddingVertical: 14,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  cartButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  cartButtonText: {color: '#fff', fontSize: 16, fontWeight: '600'},
+  thumbnailWrapperSelected: {
+    borderColor: '#ef8402ff',
+    borderWidth: 3,
+  },
+
+  // === CENTERED MODAL STYLES ===
+  centeredModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
+  },
+  centeredModalView: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalContent: {
+    width: '100%',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#111',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  discountTextInputModal: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: '#111',
+    backgroundColor: '#f9f9f9',
+    marginBottom: 20,
+  },
+  suggestionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111',
+    marginBottom: 12,
+  },
+  suggestionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 25,
+  },
+  suggestionChip: {
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  suggestionText: {
+    color: '#333',
+    fontWeight: '500',
+    fontSize: 14,
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  applyButton: {
+    backgroundColor: '#6366F1',
+  },
+  applyButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  applyButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
 
 export default ProductDetailScreen;

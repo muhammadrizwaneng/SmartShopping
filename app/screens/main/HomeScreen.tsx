@@ -22,10 +22,12 @@ import { colors } from '../../theme/color';
 import { faBarcode, faBell, faCameraAlt, faChartLine, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import AppState from '../../models/reducers';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import CategoryCard from '../../components/CategoryCard';
 import DealCard from '../../components/DealCard';
 import ProductCard from '../../components/ProductCard';
+import ApiConfig from '../../config/api-config';
+import axios from 'axios';
 
 const HomeScreen = () => {
     
@@ -35,40 +37,78 @@ const HomeScreen = () => {
   const [deals, setDeals] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isFocused = useIsFocused();
 
   const navigation = useNavigation();
 
-const mockProducts = [
-  {
-    id: '1',
-    name: 'Wireless Bluetooth Headphones',
-    price: 79.99,
-    originalPrice: 99.99,
-    image: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg',
-    rating: 4.5,
-    reviewCount: 128,
-    category: 'electronics',
-  },
-  {
-    id: '2',
-    name: 'Smart Fitness Watch',
-    price: 199.99,
-    originalPrice: 249.99,
-    image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg',
-    rating: 4.3,
-    reviewCount: 89,
-    category: 'electronics',
-  },
-  {
-    id: '3',
-    name: 'Organic Coffee Beans',
-    price: 24.99,
-    image: 'https://images.pexels.com/photos/894695/pexels-photo-894695.jpeg',
-    rating: 4.7,
-    reviewCount: 256,
-    category: 'food',
-  },
-];
+    const fetchCategoriesWithProductCounts = async () => {
+
+    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_CATEGORIES_WITH_PRODUCT_COUNTS}`;
+    try {
+      const response = await axios.get(URL);
+      if (response?.data && response?.data?.length > 0) {
+          setCategories(response?.data);
+      }
+    } catch (error) {
+      console.error(
+        'Failed to fetch product details:',
+        error.response?.data || error.message,
+      );
+      return null;
+    }
+  };
+  const fetchProductsList = async () => {
+
+    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_LIST_PRODUCTS}`;
+    try {
+      const response = await axios.get(URL);
+      if (response?.data && response?.data?.length > 0) {
+          setRecommendedProducts(response?.data);
+      }
+    } catch (error) {
+      console.error(
+        'Failed to fetch product details:',
+        error.response?.data || error.message,
+      );
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    fetchCategoriesWithProductCounts();
+    fetchProductsList() 
+  }, [isFocused]);
+// const mockProducts = [
+//   {
+//     id: '1',
+//     name: 'Wireless Bluetooth Headphones',
+//     price: 79.99,
+//     originalPrice: 99.99,
+//     image: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg',
+//     rating: 4.5,
+//     reviewCount: 128,
+//     category: 'electronics',
+//   },
+//   {
+//     id: '2',
+//     name: 'Smart Fitness Watch',
+//     price: 199.99,
+//     originalPrice: 249.99,
+//     image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg',
+//     rating: 4.3,
+//     reviewCount: 89,
+//     category: 'electronics',
+//   },
+//   {
+//     id: '3',
+//     name: 'Organic Coffee Beans',
+//     price: 24.99,
+//     image: 'https://images.pexels.com/photos/894695/pexels-photo-894695.jpeg',
+//     rating: 4.7,
+//     reviewCount: 256,
+//     category: 'food',
+//   },
+// ];
 
 const mockDeals = [
   {
@@ -91,56 +131,14 @@ const mockDeals = [
   },
 ];
 
-const mockCategories = [
-  {
-    id: '1',
-    name: 'Electronics',
-    icon: faMobileAlt, // 📱 Phone
-    color: [colors.primary, colors.primaryLight],
-    productCount: 1250,
-  },
-  {
-    id: '2',
-    name: 'Fashion',
-    icon: faTshirt, // 👕 Shirt
-    color: [colors.secondary, colors.secondaryLight],
-    productCount: 890,
-  },
-  {
-    id: '3',
-    name: 'Home',
-    icon: faHome, // 🏠 Home
-    color: [colors.accent, colors.accentLight],
-    productCount: 567,
-  },
-  {
-    id: '4',
-    name: 'Sports',
-    icon: faBasketballBall, // 🏀 Sports/Fitness
-    color: [colors.info, '#60A5FA'],
-    productCount: 423,
-  },
-];
-
   useEffect(() => {
     loadHomeData();
   }, []);
 
   const loadHomeData = async () => {
     try {
-         setRecommendedProducts(mockProducts);
-      setDeals(mockDeals);
-      setCategories(mockCategories);
 
-    //   const [productsData, dealsData, categoriesData] = await Promise.all([
-    //     productAPI.getRecommended(),
-    //     productAPI.getDeals(),
-    //     productAPI.getCategories(),
-    //   ]);
-      
-    //   setRecommendedProducts(productsData);
-    //   setDeals(dealsData);
-    //   setCategories(categoriesData);
+      setDeals(mockDeals);
     } catch (error) {
       console.error('Failed to load home data:', error);
     }

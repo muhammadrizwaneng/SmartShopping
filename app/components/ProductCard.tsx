@@ -24,21 +24,40 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({product, onPress, style}) => {
-  const discountPercentage = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
 
+//   const getProductPrices = (product) => {
+//   if (product.has_variants && product.variants?.length > 0) {
+//     // Return all variant prices
+//     return product.variants.map(variant => ({
+//       name: variant.name,
+//       price: variant.price,
+//       discountPrice: variant.discountprice,
+//       discountPercent: variant.discount_percent ?? null,
+//     }));
+//   } else {
+//     // Return root product price
+//     return [{
+//       name: product.name,
+//       price: product.price,
+//       discountPrice: product.discount_price ?? product.price,
+//       discountPercent: product.discount_percent ?? null,
+//     }];
+//   }
+// };
+
+//       const discountPercentage = getProductPrices(product)
+      console.log("=-=-discountPercentage",product)
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
       <View style={styles.imageContainer}>
         <Image
-            source={{ uri: product.image }}
+            source={{ uri: product?.main_image_url }}
             style={styles.image}
             resizeMode="cover"
             />
-        {discountPercentage > 0 && (
+        {((product?.has_variants && product?.variants[0]?.discount_percent != null)|| (product?.discount_percent)) && (
           <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-{discountPercentage}%</Text>
+            <Text style={styles.discountText}>{((product?.has_variants &&product?.variants[0]?.discount_percent) || (product?.discount_percent) )}%</Text>
           </View>
         )}
         <TouchableOpacity style={styles.favoriteButton}>
@@ -58,9 +77,27 @@ const ProductCard: React.FC<ProductCardProps> = ({product, onPress, style}) => {
         </View>
         
         <View style={styles.priceContainer}>
-          <Text style={styles.price}>${product.price}</Text>
-          {product.originalPrice && (
-            <Text style={styles.originalPrice}>${product.originalPrice}</Text>
+          {/* <Text style={styles.price}>${((product?.has_variants &&product?.variants[0]?.price) || (product?.price) )}</Text> */}
+          {/* {!product?.has_variants && product?.price ? (
+            <Text style={styles.price}>${product?.price}</Text>
+          ) : product?.has_variants && product?.discount_price != null && (
+            <Text style={styles.price}>${product?.discount_price}</Text>
+          ) } */}
+          {((!product?.has_variants && product?.discount_price != null)) ? (
+            <>
+              <Text style={styles.price}>${!product?.has_variants &&product?.discount_price}</Text>
+              <Text style={styles.originalPrice}>${((!product?.has_variants &&product?.price) )}</Text>
+            </>
+          ) : !product?.has_variants && (
+            <Text style={styles.price}>${((!product?.has_variants &&product?.price) )}</Text>
+          )}
+          {((product?.has_variants && product?.variants[0]?.discountprice != null)) ? (
+            <>
+              <Text style={styles.price}>${product?.has_variants &&product?.variants[0]?.discountprice}</Text>
+              <Text style={styles.originalPrice}>${((product?.has_variants &&product?.variants[0]?.price) )}</Text>
+            </>
+          ) : product?.has_variants && (
+            <Text style={styles.price}>${((product?.has_variants &&product?.variants[0]?.price) )}</Text>
           )}
         </View>
       </View>

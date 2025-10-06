@@ -10,8 +10,8 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 interface Category {
   id: string;
   name: string;
-  icon: IconDefinition;
-  color: string[];
+  // icon: IconDefinition;
+  // color: string[];
   productCount: number;
 }
 
@@ -24,14 +24,15 @@ const CategoryCard: React.FC<CategoryCardProps> = ({category, onPress}) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <LinearGradient
-        colors={category.color}
+        // colors={category.color}
+        colors={[colors.primary, colors.primaryLight]}
         style={styles.gradient}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}>
-        <FontAwesomeIcon icon={category.icon} size={14} color="white" />
+        {/* <FontAwesomeIcon icon={category.icon} size={14} color="white" /> */}
         {/* <Icon name={category.icon} size={32} color={colors.white} /> */}
-        <Text style={styles.name}>{category.name}</Text>
-        <Text style={styles.productCount}>{category.productCount} items</Text>
+        <Text style={styles.name}>{category.category_name}</Text>
+        <Text style={styles.productCount}>{category.product_count} items</Text>
       </LinearGradient>
     </TouchableOpacity>
   );

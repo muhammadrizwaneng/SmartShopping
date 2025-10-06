@@ -11,7 +11,11 @@ const ApiConfig = {
 
 
   LOGIN: 'user/login',
-  FETCH_CATEGORY:'category/categories'
+  FETCH_CATEGORY:'category/categories',
+  FETCH_CATEGORIES_WITH_PRODUCT_COUNTS:'category/categories-with-product-count',
+  FETCH_PRODUCTS:'products/product',
+  APPLY_DISCOUNT:'products/apply-discount',
+  FETCH_LIST_PRODUCTS:'products/getAllProducts'
 };
 
 export default ApiConfig;
