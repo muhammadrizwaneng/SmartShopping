@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
+  Image,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
@@ -29,6 +30,7 @@ import ProductCard from '../../components/ProductCard';
 const HomeScreen = () => {
     
    const user = useSelector((state: AppState) => state.user);
+
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [deals, setDeals] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -160,7 +162,7 @@ const mockCategories = [
   const renderDealItem = ({item}: any) => (
     <DealCard
       deal={item}
-      onPress={() => navigation.navigate('ProductDetails', {product: item})}
+      onPress={() => navigation.navigate('CreateProduct')}
     />
   );
 
@@ -184,42 +186,57 @@ const mockCategories = [
         style={styles.header}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Hello, {user?.name}! 👋</Text>
-            <Text style={styles.subtitle}>What are you shopping for today?</Text>
+            <Text style={styles.greeting}>Hello, {user?.userInfo?.username}! 👋</Text>
+            {/* <Text style={styles.subtitle}>What are you shopping for today?</Text> */}
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
+
+              {/* {user?.userInfo?.profilePicture ? ( 
+          <Image
+              source={{ uri: "https://turtt-uat.s3.us-west-2.amazonaws.com/686b6bfaac2c81510f25f6b5/1756367759697-image-1756367744332.jpg" }} // Use profile picture URL
+              style={styles.avatar}
+            />
+          ) : ( */}
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarPlaceholderText}>EN</Text> {/* Example: initials */}
+            </View>
+           {/* )} */}
+          {/* <TouchableOpacity style={styles.notificationButton}>
             <FontAwesomeIcon icon={faBell} size={14} color={colors.white} />
             <View style={styles.notificationBadge} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </LinearGradient>
+      <View style={{backgroundColor:"#818CF8"}}>
+        <Animatable.View animation="fadeInUp" delay={200} style={styles.searchContainer}>
+            {/* This single TouchableOpacity now acts as the merged search bar/action container */}
+            <TouchableOpacity
+                style={styles.mergedSearchBar}
+                onPress={() => navigation.navigate('Search')}>
 
-      {/* Search Bar */}
-      <Animatable.View animation="fadeInUp" delay={200} style={styles.searchContainer}>
-        <TouchableOpacity
-          style={styles.searchBar}
-          onPress={() => navigation.navigate('Search')}>
-            <FontAwesomeIcon icon={faSearch} size={20} color={colors.gray}/>
-          <Text style={styles.searchPlaceholder}>Search products...</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.searchActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('BarcodeScanner')}>
-            <FontAwesomeIcon icon={faBarcode} size={20} color={colors.primary}/>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('CameraSearch')}>
-            <FontAwesomeIcon icon={faCameraAlt} size={20} color={colors.primary}/>
-          </TouchableOpacity>
-        </View>
-      </Animatable.View>
+                {/* Placeholder Text */}
+                <Text style={styles.searchPlaceholder}>Search products...</Text>
+
+                {/* Action Icons */}
+                <View style={styles.mergedSearchActions}>
+                    <TouchableOpacity
+                        style={styles.actionButtonInvisible} // Apply transparent style
+                        onPress={() => navigation.navigate('BarcodeScanner')}>
+                        <FontAwesomeIcon icon={faBarcode} size={20} color={colors.primary}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.actionButtonInvisible} // Apply transparent style
+                        onPress={() => navigation.navigate('CameraSearch')}>
+                        <FontAwesomeIcon icon={faCameraAlt} size={20} color={colors.primary}/>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Animatable.View>
+      </View>
+
 
       {/* Categories */}
       <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
-        <Text style={styles.sectionTitle}>Categories</Text>
+        <Text style={[styles.sectionTitle,{padding:20}]}>Categories</Text>
         <FlatList
           data={categories}
           renderItem={renderCategoryItem}
@@ -268,7 +285,7 @@ const mockCategories = [
 
       {/* AI Insights */}
       <Animatable.View animation="fadeInUp" delay={1000} style={styles.section}>
-        <Text style={styles.sectionTitle}>💡 Smart Insights</Text>
+        <Text style={[styles.sectionTitle,{padding:16}]}>💡 Smart Insights</Text>
         <View style={styles.insightCard}>
             <FontAwesomeIcon icon={faChartLine} size={20} color={colors.success}/>
           <View style={styles.insightContent}>
@@ -301,12 +318,14 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 50,
     paddingBottom: spacing.lg,
-    paddingHorizontal: spacing.screenPadding,
+    paddingHorizontal: 16,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    // paddingTop: spacing.xl,
   },
   greeting: {
     fontSize: typography.fontSize.xl,
@@ -334,8 +353,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.screenPadding,
-    marginTop: -spacing.lg,
+    paddingHorizontal: 20,
+    marginTop: 10,
     marginBottom: spacing.lg,
   },
   searchBar: {
@@ -346,8 +365,8 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    marginRight: spacing.sm,
-    ...spacing.shadow.md,
+    // marginRight: spacing.sm,
+    ...spacing.shadow.md
   },
   searchPlaceholder: {
     marginLeft: spacing.sm,
@@ -371,7 +390,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.screenPadding,
+    paddingHorizontal: 20,
     marginBottom: spacing.md,
   },
   sectionTitle: {
@@ -385,14 +404,14 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium,
   },
   horizontalList: {
-    paddingLeft: spacing.screenPadding,
+    paddingLeft: 20,
   },
   insightCard: {
     flexDirection: 'row',
     backgroundColor: colors.white,
     borderRadius: spacing.borderRadius.lg,
     padding: spacing.md,
-    marginHorizontal: spacing.screenPadding,
+    marginHorizontal: 20,
     marginBottom: spacing.sm,
     ...spacing.shadow.sm,
   },
@@ -411,6 +430,53 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 18,
   },
+    mergedSearchActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+    mergedSearchBar: {
+    flex: 1, // Takes up the full width
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Pushes placeholder left, icons right
+    alignItems: 'center',
+    backgroundColor: colors.white, // The white background for the whole bar
+    borderRadius: spacing.borderRadius.lg, // Large rounding
+    paddingHorizontal: spacing.md, // Horizontal padding for inside the bar
+    paddingVertical: spacing.md, 
+    ...spacing.shadow.md // Shadow for the entire bar
+  },
+    actionButtonInvisible: {
+    // Removed all styling that creates a separate button look (white background, shadow, padding)
+    paddingHorizontal: spacing.sm, // Add a small amount of space between icons
+    paddingVertical: 0,
+    marginLeft: spacing.sm, // Add space between placeholder and first icon, and between icons
+  },
+
+   avatar: {
+    width: 48, // Diameter of the circle
+    height: 48, // Diameter of the circle
+    borderRadius: 24, // Half of width/height for a perfect circle
+    backgroundColor: colors.lightGray, // Fallback background if image fails
+    borderWidth: 2, // Optional: white border
+    borderColor: colors.white, // Optional: white border
+    marginLeft: spacing.md, // Spacing from the text
+  },
+  // Optional: Placeholder for when there's no profile picture
+  avatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.accent, // Different background for placeholder
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.md,
+  },
+  avatarPlaceholderText: {
+    color: colors.white,
+    fontSize: typography.fontSize.lg,
+    fontWeight: 'bold',
+  },
+
 });
 
 export default HomeScreen;

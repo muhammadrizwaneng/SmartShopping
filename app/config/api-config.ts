@@ -11,6 +11,7 @@ const ApiConfig = {
 
 
   LOGIN: 'user/login',
+  FETCH_CATEGORY:'category/categories'
 };
 
 export default ApiConfig;

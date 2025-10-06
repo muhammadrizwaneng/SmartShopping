@@ -16,6 +16,8 @@ import { faHome as faHomeOutline, faSearch as faSearchOutline, faListAlt, faUser
 
 import HomeScreen from '../screens/main/HomeScreen';
 import { colors } from '../theme/color';
+import ProductDetailScreen from '../screens/main/ProductDetailScreen';
+import CreateProductScreen from '../screens/main/CreateProductScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -27,7 +29,26 @@ const HomeStack = () => (
       component={HomeScreen} 
       options={{headerShown: false}}
     />
-    {/* <Stack.Screen 
+    <Stack.Screen 
+      name="ProductDetails" 
+      component={ProductDetailScreen}
+      options={{
+        headerTitle: 'Product Details',
+        headerStyle: {backgroundColor: colors.primary},
+        headerTintColor: colors.white,
+      }}
+    />
+    <Stack.Screen 
+      name="CreateProduct" 
+      component={CreateProductScreen}
+      options={{
+        headerTitle: 'Product Details',
+        headerStyle: {backgroundColor: colors.primary},
+        headerTintColor: colors.white,
+      }}
+    />
+
+    {/* <Stack.Screen CreateProductScreen
       name="ProductDetails" 
       component={ProductDetailsScreen}
       options={{

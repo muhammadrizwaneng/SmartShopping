@@ -37,7 +37,8 @@ export const loginUser = createAsyncThunk(
     // // console.log(keyFor);
     // // SSo Login Call for user
     const response = await CallServiceFor(urlFor, 'post', keyFor);
-    console.log('response:',  response?.data?.access_token?.access_token);
+    console.log('response:',  response?.data);
+    console.log('response:access_token',  response?.data?.access_token?.access_token);
   
       if (response.status == 200) {
         const accessToken = response?.data?.access_token?.access_token;
@@ -82,10 +83,11 @@ const authSlice = createSlice({
 
     builder.addCase(loginUser.fulfilled, (state, action: any) => {
           console.log('Login Success:', action.payload);
+          console.log('action.payload.accessToken.accessToken Success:', action.payload.access_token?.access_token);
           state.loading = false;
           state.isLoggedIn = true;
           state.userInfo = action.payload.user;
-          state.token = action.payload.accessToken;
+          state.token = action.payload.access_token?.access_token;
     });
 
     builder.addCase(loginUser.rejected, (state, action: any) => {
