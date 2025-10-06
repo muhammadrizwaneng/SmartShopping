@@ -16,7 +16,7 @@ import ApiConfig from '../../config/api-config';
 import axios from 'axios';
 import {useIsFocused} from '@react-navigation/native';
 
-const ProductDetailScreen = () => {
+const ProductDetailScreen = (props) => {
   const [productData, setProductData] = useState(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [activeMainImage, setActiveMainImage] = useState(null);
@@ -26,8 +26,8 @@ const ProductDetailScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false); 
   const isFocused = useIsFocused();
 
-  const fetchProductDetails = async () => {
-    const PRODUCT_ID = '68e360dd980706ff128da73e';
+  const fetchProductDetails = async (product_id) => {
+    const PRODUCT_ID = product_id;
     // const PRODUCT_ID = '68e35fad980706ff128da73d';
     const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_PRODUCTS}/${PRODUCT_ID}`;
 
@@ -48,7 +48,9 @@ const ProductDetailScreen = () => {
   };
 
   useEffect(() => {
-    fetchProductDetails();
+    if(props?.route?.params?.product != "" && props?.route?.params?.product!= null){
+      fetchProductDetails(props?.route?.params?.product);
+    }
   }, [isFocused]);
 
   const handleSelectSuggestion = (percentage) => {
@@ -143,7 +145,7 @@ const ProductDetailScreen = () => {
             message: `${discountPercentage}% discount applied!`
         };
         setAppliedDiscount(mockResponse);
-        fetchProductDetails();
+        fetchProductDetails(props?.route?.params?.product);
         setIsModalVisible(false);
         setDiscountInput(''); // Clear input after applying
         // Alert.alert('Success', mockResponse.message);

@@ -24,29 +24,6 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({product, onPress, style}) => {
-
-//   const getProductPrices = (product) => {
-//   if (product.has_variants && product.variants?.length > 0) {
-//     // Return all variant prices
-//     return product.variants.map(variant => ({
-//       name: variant.name,
-//       price: variant.price,
-//       discountPrice: variant.discountprice,
-//       discountPercent: variant.discount_percent ?? null,
-//     }));
-//   } else {
-//     // Return root product price
-//     return [{
-//       name: product.name,
-//       price: product.price,
-//       discountPrice: product.discount_price ?? product.price,
-//       discountPercent: product.discount_percent ?? null,
-//     }];
-//   }
-// };
-
-//       const discountPercentage = getProductPrices(product)
-      console.log("=-=-discountPercentage",product)
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
       <View style={styles.imageContainer}>
@@ -77,12 +54,6 @@ const ProductCard: React.FC<ProductCardProps> = ({product, onPress, style}) => {
         </View>
         
         <View style={styles.priceContainer}>
-          {/* <Text style={styles.price}>${((product?.has_variants &&product?.variants[0]?.price) || (product?.price) )}</Text> */}
-          {/* {!product?.has_variants && product?.price ? (
-            <Text style={styles.price}>${product?.price}</Text>
-          ) : product?.has_variants && product?.discount_price != null && (
-            <Text style={styles.price}>${product?.discount_price}</Text>
-          ) } */}
           {((!product?.has_variants && product?.discount_price != null)) ? (
             <>
               <Text style={styles.price}>${!product?.has_variants &&product?.discount_price}</Text>

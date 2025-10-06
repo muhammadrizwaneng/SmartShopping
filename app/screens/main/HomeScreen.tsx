@@ -153,7 +153,7 @@ const mockDeals = [
   const renderProductItem = ({item}: any) => (
     <ProductCard
       product={item}
-      onPress={() => navigation.navigate('ProductDetails', {product: item})}
+      onPress={() => navigation.navigate('ProductDetails', {product: item?._id})}
     />
   );
 
