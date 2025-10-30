@@ -8,103 +8,58 @@ import {
   FlatList,
   RefreshControl,
   Image,
+  ActivityIndicator
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-
-import {typography} from '../../theme/typography';
-import {spacing} from '../../theme/spacing';
-
 import { faMobileAlt, faTshirt, faHome, faBasketballBall } from '@fortawesome/free-solid-svg-icons';
-// import {productAPI} from '../../services/api';
-import { colors } from '../../theme/color';
 import { faBarcode, faBell, faCameraAlt, faChartLine, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
-import AppState from '../../models/reducers';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+
+// Components
 import CategoryCard from '../../components/CategoryCard';
 import DealCard from '../../components/DealCard';
 import ProductCard from '../../components/ProductCard';
-import ApiConfig from '../../config/api-config';
-import axios from 'axios';
+
+// Redux Actions
+import { fetchProducts } from '../../redux/productSlice';
+import { fetchCategories } from '../../redux/categorySlice';
+
+// Theme
+import { typography } from '../../theme/typography';
+import { spacing } from '../../theme/spacing';
+import { colors } from '../../theme/color';
 
 const HomeScreen = () => {
     
-   const user = useSelector((state: AppState) => state.user);
-
-  const [recommendedProducts, setRecommendedProducts] = useState([]);
-  const [discountedProducts, setDiscountedProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const isFocused = useIsFocused();
-
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-    const fetchCategoriesWithProductCounts = async () => {
-      setLoading(true);
-    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_CATEGORIES_WITH_PRODUCT_COUNTS}`;
-    try {
-      const response = await axios.get(URL);
-      if (response?.data && response?.data?.length > 0) {
-          setCategories(response?.data);
-      }
-    } catch (error) {
-      console.error(
-        'Failed to fetch product details:',
-        error.response?.data || error.message,
-      );
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-  const fetchProductsList = async () => {
-
-    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_LIST_PRODUCTS}`;
-    try {
-      const response = await axios.get(URL);
-      if (response?.data && response?.data?.length > 0) {
-          setRecommendedProducts(response?.data);
-      }
-    } catch (error) {
-      console.error(
-        'Failed to fetch product details:',
-        error.response?.data || error.message,
-      );
-      return null;
-    }
-  };
-
-  const fetchDisountedProducts = async () => {
-
-    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_DISCOUNTED_PRODUCTS}`;
-    try {
-      const response = await axios.get(URL);
-      if (response?.data && response?.data?.length > 0) {
-        // console.log("response?.data in fetchDisountedProducts", response?.data);
-          setDiscountedProducts(response?.data);
-      }
-    } catch (error) {
-      console.error(
-        'Failed to fetch product details:',
-        error.response?.data || error.message,
-      );
-      return null;
-    }
-  };
-
+  const isFocused = useIsFocused();
+  
+  // Get data from Redux store
+  const { products, loading: productsLoading, error: productsError } = useSelector((state: any) => state.products);
+  const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: any) => state.categories);
+  const user = useSelector((state: any) => state.auth.userInfo);
+  
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  
+  const loading = productsLoading || categoriesLoading;
+  const error = productsError || categoriesError;
 
   useEffect(() => {
-    fetchCategoriesWithProductCounts();
-    fetchProductsList() 
-    fetchDisountedProducts();
-    setLoading(true);
-  }, [isFocused]);
+    dispatch(fetchProducts());
+    dispatch(fetchCategories());
+  }, [dispatch, isFocused]);
 
   const onRefresh = async () => {
-    setIsRefreshing(true);
-    setIsRefreshing(false);
+    setRefreshing(true);
+    dispatch(fetchProducts());
+    dispatch(fetchCategories());
+    setRefreshing(false);
   };
 
   const renderProductItem = ({item}: any) => (
@@ -129,11 +84,45 @@ const HomeScreen = () => {
     />
   );
 
+  if (loading && !refreshing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (loading && refreshing) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.refreshIndicator}>
+          <ActivityIndicator size="small" color={colors.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error loading data. Please try again.</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={false} 
+          onRefresh={onRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
       }>
       
       {/* Header */}
@@ -142,7 +131,7 @@ const HomeScreen = () => {
         style={styles.header}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Hello, {user?.userInfo?.username}! 👋</Text>
+            <Text style={styles.greeting}>Hello, {user?.username || 'User'}! <Text>👋</Text></Text>
             {/* <Text style={styles.subtitle}>What are you shopping for today?</Text> */}
           </View>
 
@@ -218,7 +207,7 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
         <FlatList
-          data={discountedProducts}
+          data={products}
           renderItem={renderDealItem}
           keyExtractor={(item) => item.id}
           horizontal
@@ -236,7 +225,7 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
         <FlatList
-          data={recommendedProducts}
+          data={products?.slice(0, 5)} // Show first 5 products as recommendations
           renderItem={renderProductItem}
           keyExtractor={(item) => item.id}
           horizontal
@@ -275,7 +264,42 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background
+  },
+  refreshIndicator: {
+    paddingTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 10
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.fontSize.base,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: spacing.borderRadius.md,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium as any,
   },
   header: {
     paddingTop: 50,
@@ -291,7 +315,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
+    fontWeight: typography.fontWeight.bold as any,
     color: colors.white,
   },
   subtitle: {
@@ -357,13 +381,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
+    fontWeight: typography.fontWeight.semibold as any,
     color: colors.textPrimary,
   },
   seeAll: {
     fontSize: typography.fontSize.sm,
     color: colors.primary,
-    fontWeight: typography.fontWeight.medium,
+    fontWeight: typography.fontWeight.medium as any,
   },
   horizontalList: {
     paddingLeft: 20,
@@ -383,7 +407,7 @@ const styles = StyleSheet.create({
   },
   insightTitle: {
     fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
+    fontWeight: typography.fontWeight.semibold as any,
     color: colors.textPrimary,
     marginBottom: 4,
   },
@@ -436,7 +460,7 @@ const styles = StyleSheet.create({
   avatarPlaceholderText: {
     color: colors.white,
     fontSize: typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as any,
   },
 
 });

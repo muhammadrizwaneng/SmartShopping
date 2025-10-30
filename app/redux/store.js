@@ -1,40 +1,31 @@
-// PERSIST
-
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import verificationReducer from './verificationSlice';
-import loginReducer from './userSlice';
-import ssoReducer from './ssoSlice';
-// import appReducer from './appSlice';
-
-// import storage from 'redux-persist/lib/storage';
-// import {combineReducers} from 'redux';
-
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from 'redux-persist';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const rootReducer = combineReducers({
-  user: loginReducer,
-  verificationPopup: verificationReducer,
-  //categoryData: categoryReducer,s
-  // app: appReducer,
-  sso: ssoReducer,
-});
+// Import reducers
+import verificationReducer from './verificationSlice';
+import authReducer from './userSlice';
+import ssoReducer from './ssoSlice';
+import productReducer from './productSlice';
+import categoryReducer from './categorySlice';
+import cartReducer from './cartSlice';
 
+// Persist config
 const persistConfig = {
-  // Root
   key: 'root',
-  // Storage Method (React Native)
+  version: 1,
   storage: AsyncStorage,
+  whitelist: ['auth', 'cart'], // Only persist auth and cart
 };
+
+const rootReducer = combineReducers({
+  verification: verificationReducer,
+  auth: authReducer,
+  sso: ssoReducer,
+  products: productReducer,
+  categories: categoryReducer,
+  cart: cartReducer,
+});
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
@@ -42,11 +33,9 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      // serializableCheck: {
-      //   ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      // },
-      serializableCheck: false,
-      immutableCheck: false,
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
     }),
 });
 

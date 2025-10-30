@@ -37,7 +37,7 @@ export const loginUser = createAsyncThunk(
     // // console.log(keyFor);
     // // SSo Login Call for user
     const response = await CallServiceFor(urlFor, 'post', keyFor);
-    console.log('response:',  response?.data);
+    console.log('response:',  response?.status);
     console.log('response:access_token',  response?.data?.access_token?.access_token);
   
       if (response.status == 200) {
@@ -82,12 +82,23 @@ const authSlice = createSlice({
     });
 
     builder.addCase(loginUser.fulfilled, (state, action: any) => {
-          console.log('Login Success:', action.payload);
-          console.log('action.payload.accessToken.accessToken Success:', action.payload.access_token?.access_token);
-          state.loading = false;
-          state.isLoggedIn = true;
-          state.userInfo = action.payload.user;
-          state.token = action.payload.access_token?.access_token;
+      console.log('Login Success:', action.payload);
+      console.log('action.payload.accessToken.accessToken Success:', action.payload.access_token?.access_token);
+      
+      // Store user data and token in AsyncStorage
+      const userData = {
+        user: action.payload.user,
+        token: action.payload.access_token?.access_token,
+        isLoggedIn: true
+      };
+      
+      AsyncStorage.setItem('userData', JSON.stringify(userData));
+      
+      // Update state
+      state.loading = false;
+      state.isLoggedIn = true;
+      state.userInfo = action.payload.user || {};
+      state.token = action.payload.access_token?.access_token;
     });
 
     builder.addCase(loginUser.rejected, (state, action: any) => {
@@ -98,6 +109,14 @@ const authSlice = createSlice({
 
     // LOGOUT
     builder.addCase(logoutUser.fulfilled, (state) => {
+      // Clear AsyncStorage
+      AsyncStorage.removeItem('userData');
+      AsyncStorage.removeItem('token');
+      
+      // Reset state
+      state.isLoggedIn = false;
+      state.userInfo = null;
+      state.token = null;
       state.loading = false;
       state.isLoggedIn = false;
       state.token = null;

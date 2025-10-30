@@ -1,178 +1,83 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  Dimensions,
-  StatusBar,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StatusBar, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useDispatch, useSelector } from 'react-redux';
-import { navigationRef } from './NavigationService';
-import AppState from '../models/reducers';
-// import WelcomeScreen from '../screens/WelcomeSreen';
-// import Onboarding from '../screens/Onboarding';
-// import HomeScreen from '../screens/LandingScreen';
-// import SignUpScreen from '../screens/auth/SignUpScreen';
-// import SignInScreen from '../screens/auth/SignInScreen';
-// import ExploreScreen from '../screens/ExploreScreen';
-// import ProfileScreen from '../screens/ProfileScreen';
-// import ProductOrderScreen from '../screens/ProductOrderScreen';
+import { useSelector, useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setUserInfo } from '../redux/userSlice';
+
 import AuthNavigation from './AuthNavigation';
 import MainNavigator from './MainNavigation';
 
+// Create navigation reference
+export const navigationRef = React.createRef();
 
-export default () => {
-  // const routeNameRef = useRef();
-  // const user = useSelector((state: AppState) => state.user);
-  const isLoggedIn = useSelector((state: AppState) => state.user.isLoggedIn);
-  // const isWelcomed = useSelector((state: AppState) => state.user.isWelcome);
+// Add this type for your root state
+type RootState = {
+  auth: {
+    isLoggedIn: boolean;
+    userInfo: any;
+    token: string | null;
+    loading: boolean;
+  };
+};
 
+const AppNavigator = () => {
   const Stack = createNativeStackNavigator();
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const dispatch = useDispatch();
 
-  // const dim = Dimensions.get('screen');
-  // const processingDeeplink = false;
+  // Check for existing token and user data on app start
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        
+        if (userData) {
+          const parsedData = JSON.parse(userData);
+          if (parsedData?.token) {
+            dispatch(setUserInfo({
+              userInfo: parsedData.user,
+              token: parsedData.token,
+              isLoggedIn: true
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth state:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // const [isLoading, setIsLoading] = useState(true);
-  // const guestEmail = useSelector((state: AppState) => state.sso.email);
-  // var isGuest = false;
-  // const userId = useSelector((state: AppState) => state.user._id);
-  // const message = useSelector((state: AppState) => state.snackBar.message);
-  // const style = useSelector((state: AppState) => state.snackBar.style);
-  // const source = {
-  //   html: message,
-  // };
-  // const isVisibleSnackBar = useSelector(
-  //   (state: AppState) => state.snackBar.isVisible,
-  // );
+    checkAuth();
+  }, [dispatch]);
 
-  // const dispatch = useDispatch();
-  // const onDismissSnackBar = () => {
-  //   dispatch(disableSnackBar());
-  // };
-
-  // useEffect(() => {
-  //   AsyncStorage.getItem('token')
-  //     .then((token) => {
-  //       if (!token) {
-  //       }
-  //     })
-  //     .catch((error) => {
-
-  //     });
-
-  // }, [isLoggedIn]);
-
-  // useEffect(() => {
-  //   dispatch(disableLoading());
-
-  //   if (isVisibleSnackBar) {
-  //     setTimeout(() => {
-  //       dispatch(disableSnackBar());
-  //     }, 5000);
-  //   }
-  // }, [isVisibleSnackBar]);
-
-  // const baseStyle: MixedStyleDeclaration = {
-  //   color: '#000000',
-  //   fontFamily: 'Poppins-Medium',
-  //   fontSize: 12,
-  // };
-
-  // useEffect(() => {
-  //   // Simulate a loading process
-  //   const timeout = setTimeout(() => {
-  //     setIsLoading(false);
-  //   }, 2000);
-
-  //   return () => clearTimeout(timeout);
-  // }, []);
-
-
-  // const linking = {
-  //   prefixes: [
-  //     "saveseecard://",
-  //     'https://nextjs-blog-five-mauve-28.vercel.app',
-  //     'saveseecard://saveCard'
-  //   ],
-  //   config: {
-  //     screens: {
-  //       saveCard: {
-  //         path: 'saveCard/:id?',
-  //         parse: {
-  //           id: (id: String) => `${id}`,
-  //         },
-  //       },
-  //     },
-  //   },
-  // };
-
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
-    <>
-      <NavigationContainer ref={navigationRef} >
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-
-        <Stack.Navigator screenOptions={{headerShown: false}}>
-          {isLoggedIn ? (
-            <Stack.Screen name="Main" component={MainNavigator} />
-          ):(
-            <Stack.Screen name="Auth" component={AuthNavigation} />
-          )}
-              {/* <Stack.Screen
-            name='Onboarding'
-            component={Onboarding}
-          />
-         <Stack.Screen
-              name='LandingScreen'
-              component={HomeScreen}
-            />
-          <Stack.Screen
-              name='WelcomeScreen'
-              component={WelcomeScreen}
-            />
-            <Stack.Screen
-              name='Signup'
-              component={SignUpScreen}
-            />
-            <Stack.Screen
-              name='SignIn'
-              component={SignInScreen}
-            />
-            <Stack.Screen
-              name='Explore'
-              component={ExploreScreen}
-            />
-            <Stack.Screen
-              name='profile'
-              component={ProfileScreen}
-            />
-            <Stack.Screen
-              name='ProductOrderScreen'
-              component={ProductOrderScreen}
-            /> */}
-          {/* {isLoading ? ( 
-            <Stack.Screen
-              name='LandingScreen'
-              component={LandingScreen}
-              options={{ headerShown: false }}
-            />
-          ) : isLoggedIn && isWelcomed == false ? (
-            <Stack.Screen
-              name='MainStackNavigator'
-              component={DrawerNavigator}
-              options={{ headerShown: false }}
-
-            />
-          ) : (
-            <Stack.Screen
-              name='AuthNavigation'
-              component={AuthNavigation}
-              options={{ headerShown: false }}
-            />
-          )} */}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </>
+    <NavigationContainer ref={navigationRef}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade',
+        }}>
+        {isLoggedIn ? (
+          <Stack.Screen name="Main" component={MainNavigator} />
+        ) : (
+          <Stack.Screen name="Auth" component={AuthNavigation} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
+
+export default AppNavigator;

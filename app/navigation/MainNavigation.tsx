@@ -20,6 +20,7 @@ import ProductDetailScreen from '../screens/main/ProductDetailScreen';
 import CreateProductScreen from '../screens/main/CreateProductScreen';
 import CategoryPageScreen from '../screens/main/CategoryPageScreen';
 import CategoriesScreen from '../screens/main/CategoriesScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -158,6 +159,11 @@ const MainNavigator = () => {
         name="Search" 
         component={SearchStack}
         options={{tabBarLabel: 'Categories'}}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen}
+        options={{tabBarLabel: 'Account'}}
       />
       {/* 
       <Tab.Screen 

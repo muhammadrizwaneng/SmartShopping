@@ -52,7 +52,6 @@ export default function CategoryPageScreen() {
 
         if (!mount) return;
 
-        console.log("-----",res.data);
         setProducts(res.data);
 
         if (res.data.length && res.data[0].category_name) {
