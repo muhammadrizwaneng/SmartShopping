@@ -30,7 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({product, onPress, style}) => {
         <Image
             source={{ uri: product?.main_image_url }}
             style={styles.image}
-            resizeMode="cover"
+            resizeMode="contain"
             />
         {((product?.has_variants && product?.variants[0]?.discount_percent != null)|| (product?.discount_percent)) && (
           <View style={styles.discountBadge}>
