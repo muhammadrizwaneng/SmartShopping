@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, ActivityIndicator} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {typography} from '../theme/typography';
@@ -21,6 +21,7 @@ interface CategoryCardProps {
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({category, onPress}) => {
+  
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <LinearGradient

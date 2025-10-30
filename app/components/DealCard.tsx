@@ -1,6 +1,5 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
-
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
@@ -17,6 +16,12 @@ interface Deal {
   image: string;
   discount: number;
   timeLeft: string;
+  has_variants: boolean;
+  variants?: Array<{
+    discountprice?: number;
+    discount_percent?: number;
+    price: number;
+  }>;
 }
 
 interface DealCardProps {
@@ -25,6 +30,13 @@ interface DealCardProps {
 }
 
 const DealCard: React.FC<DealCardProps> = ({deal, onPress}) => {
+  // Filter variants to get only the ones with discounts
+  const discountedVariants = deal?.variants?.filter(
+    variant => variant.discountprice != null || variant.discount_percent != null
+  );
+
+    const isSingleProductWithDiscount = !deal.has_variants && deal.discount_percent != null;
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <LinearGradient
@@ -34,51 +46,51 @@ const DealCard: React.FC<DealCardProps> = ({deal, onPress}) => {
         end={{x: 1, y: 1}}>
         
         <View style={styles.header}>
+          {/* Display discount text for variants with discounts */}
           <View style={styles.discountBadge}>
-            {deal?.has_variants && deal?.variants[0]?.discount_percent != null ? (
-              <Text style={styles.discountText}>{deal?.variants[0]?.discount_percent}% OFF</Text>
-            ) : !deal.has_variants && deal?.discount_percent != null &&  (
-              <Text style={styles.discountText}>{deal?.discount_percent}% OFF</Text>
+                   {isSingleProductWithDiscount ? (
+              <Text style={styles.discountText}>{deal.discount_percent}% OFF</Text>
+            ) : (
+              discountedVariants?.map((variant, index) => (
+                <Text key={index} style={styles.discountText}>
+                  {variant.discount_percent}% OFF
+                </Text>
+              ))
             )}
-            {/* <Text style={styles.discountText}>{deal.discount_percent}% OFF</Text> */}
           </View>
           <View style={styles.timeContainer}>
             <FontAwesomeIcon icon={faTimes} size={12} color="white" />
-            {/* <Icon name="time" size={12} color={colors.white} /> */}
             <Text style={styles.timeText}>{deal.timeLeft}</Text>
           </View>
         </View>
-        
+
          <Image
             source={{ uri: deal?.main_image_url }}
             style={styles.image}
             resizeMode="contain"
          />
+        
         <View style={styles.content}>
           <Text style={styles.name} numberOfLines={2}>
             {deal.name}
           </Text>
           <View style={styles.priceContainer}>
-            {/* <View > */}
-              {((!deal?.has_variants && deal?.discount_price != null)) ? (
-                <>
-                  <Text style={styles.price}>${!deal?.has_variants && deal?.discount_price}</Text>
-                  <Text style={styles.originalPrice}>${((!deal?.has_variants &&deal?.price) )}</Text>
-                </>
-              ) : !deal?.has_variants && (
-                <Text style={styles.price}>${((!deal?.has_variants &&deal?.price) )}</Text>
-              )}
-              {((deal?.has_variants && deal?.variants[0]?.discountprice != null)) ? (
-                <>
-                  <Text style={styles.price}>${deal?.has_variants &&deal?.variants[0]?.discountprice}</Text>
-                  <Text style={styles.originalPrice}>${((deal?.has_variants &&deal?.variants[0]?.price) )}</Text>
-                </>
-              ) : deal?.has_variants && (
-                <Text style={styles.price}>${((deal?.has_variants &&deal?.variants[0]?.price) )}</Text>
-              )}
-            {/* </View> */}
-            {/* <Text style={styles.price}>${deal.price}</Text> */}
-            {/* <Text style={styles.originalPrice}>${deal.originalPrice}</Text> */}
+            {/* Render the discounted variant's price */}
+            { isSingleProductWithDiscount ? (
+              <>
+                <Text style={styles.price}>${deal?.discount_price}</Text>
+                <Text style={styles.originalPrice}>${deal?.price}</Text>
+              </>
+            ) : (
+              discountedVariants?.length > 0 &&  (
+                discountedVariants?.map((variant, index) => (
+                  <View key={index}>
+                    <Text style={styles.price}>${variant.discountprice}</Text>
+                    <Text style={styles.originalPrice}>${variant.price}</Text>
+                  </View>
+                ))
+              )
+            )}
           </View>
         </View>
       </LinearGradient>

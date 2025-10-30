@@ -203,23 +203,36 @@ const ProductDetailScreen = (props) => {
             <Text style={styles.variantTitle}>Variants</Text>
             <View style={styles.variantsContainer}>
               {productData?.variants.map((v, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => handleVariantSelect(index)}
-                  style={[
-                    styles.variantChip,
-                    index === selectedVariantIndex &&
-                      styles.variantChipSelected,
-                  ]}>
-                  <Text
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => handleVariantSelect(index)}
                     style={[
-                      styles.variantText,
+                      styles.variantChip,
                       index === selectedVariantIndex &&
-                        styles.variantTextSelected,
+                        styles.variantChipSelected,
                     ]}>
-                    {v.name} ({v.stock} left)
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      style={[
+                        styles.variantText,
+                        index === selectedVariantIndex &&
+                          styles.variantTextSelected,
+                      ]}>
+                      {v.name} 
+                    </Text>
+                  </TouchableOpacity>
+                  <View  style={[
+                      styles.variantChip,
+                      index === selectedVariantIndex &&
+                        styles.variantChipSelected,
+                    ]}>
+                    <Text style={[
+                        styles.variantText,
+                        index === selectedVariantIndex &&
+                          styles.variantTextSelected,
+                      ]}> ({v.stock} left) </Text> 
+                  </View>
+                </View>
               ))}
             </View>
           </View>

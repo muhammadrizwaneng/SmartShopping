@@ -2,8 +2,8 @@ import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faSearch, faList, faUser } from '@fortawesome/free-solid-svg-icons';
-import { faHome as faHomeOutline, faSearch as faSearchOutline, faListAlt, faUser as faUserOutline } from '@fortawesome/free-regular-svg-icons';
+import { faHome, faSearch, faList, faUser,faMagnifyingGlass as faSearchOutline } from '@fortawesome/free-solid-svg-icons';
+import { faHome as faHomeOutline,faListAlt, faUser as faUserOutline } from '@fortawesome/free-regular-svg-icons';
 
 // import SearchScreen from '../screens/main/SearchScreen';
 // import ShoppingListScreen from '../screens/main/ShoppingListScreen';
@@ -18,6 +18,8 @@ import HomeScreen from '../screens/main/HomeScreen';
 import { colors } from '../theme/color';
 import ProductDetailScreen from '../screens/main/ProductDetailScreen';
 import CreateProductScreen from '../screens/main/CreateProductScreen';
+import CategoryPageScreen from '../screens/main/CategoryPageScreen';
+import CategoriesScreen from '../screens/main/CategoriesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -48,15 +50,16 @@ const HomeStack = () => (
       }}
     />
 
-    {/* <Stack.Screen CreateProductScreen
-      name="ProductDetails" 
-      component={ProductDetailsScreen}
+    <Stack.Screen
+      name="CategoryPageScreen" 
+      component={CategoryPageScreen}
       options={{
-        headerTitle: 'Product Details',
+        headerTitle: 'Category Products',
         headerStyle: {backgroundColor: colors.primary},
         headerTintColor: colors.white,
       }}
     />
+    {/* 
     <Stack.Screen 
       name="PriceComparison" 
       component={PriceComparisonScreen}
@@ -72,11 +75,20 @@ const HomeStack = () => (
 const SearchStack = () => (
   <Stack.Navigator>
     <Stack.Screen 
-      name="SearchMain" 
-      component={SearchScreen} 
+      name="Categories" 
+      component={CategoriesScreen} 
       options={{headerShown: false}}
     />
     <Stack.Screen 
+      name="categoryDetail" 
+      component={CategoryPageScreen}
+      options={{
+        headerTitle: 'Category Details',
+        headerStyle: {backgroundColor: colors.primary},
+        headerTintColor: colors.white,
+      }}
+    /> 
+    {/* <Stack.Screen 
       name="BarcodeScanner" 
       component={BarcodeScannerScreen}
       options={{
@@ -94,15 +106,7 @@ const SearchStack = () => (
         headerTintColor: colors.white,
       }}
     />
-    <Stack.Screen 
-      name="ProductDetails" 
-      component={ProductDetailsScreen}
-      options={{
-        headerTitle: 'Product Details',
-        headerStyle: {backgroundColor: colors.primary},
-        headerTintColor: colors.white,
-      }}
-    />
+    */}
   </Stack.Navigator>
 );
 
@@ -150,11 +154,12 @@ const MainNavigator = () => {
         component={HomeStack}
         options={{tabBarLabel: 'Home'}}
       />
-      {/* <Tab.Screen 
+      <Tab.Screen 
         name="Search" 
         component={SearchStack}
-        options={{tabBarLabel: 'Search'}}
+        options={{tabBarLabel: 'Categories'}}
       />
+      {/* 
       <Tab.Screen 
         name="ShoppingList" 
         component={ShoppingListScreen}

@@ -35,15 +35,14 @@ const HomeScreen = () => {
 
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [discountedProducts, setDiscountedProducts] = useState([]);
-  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isFocused = useIsFocused();
 
   const navigation = useNavigation();
-
     const fetchCategoriesWithProductCounts = async () => {
-
+      setLoading(true);
     const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_CATEGORIES_WITH_PRODUCT_COUNTS}`;
     try {
       const response = await axios.get(URL);
@@ -56,6 +55,8 @@ const HomeScreen = () => {
         error.response?.data || error.message,
       );
       return null;
+    } finally {
+      setLoading(false);
     }
   };
   const fetchProductsList = async () => {
@@ -98,45 +99,11 @@ const HomeScreen = () => {
     fetchCategoriesWithProductCounts();
     fetchProductsList() 
     fetchDisountedProducts();
+    setLoading(true);
   }, [isFocused]);
-// 
-const mockDeals = [
-  {
-    id: '1',
-    name: 'Gaming Laptop',
-    price: 899.99,
-    originalPrice: 1299.99,
-    image: 'https://images.pexels.com/photos/18105/pexels-photo.jpg',
-    discount: 31,
-    timeLeft: '2h 15m',
-  },
-  {
-    id: '2',
-    name: 'Smartphone',
-    price: 599.99,
-    originalPrice: 799.99,
-    image: 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg',
-    discount: 25,
-    timeLeft: '5h 30m',
-  },
-];
-
-  useEffect(() => {
-    loadHomeData();
-  }, []);
-
-  const loadHomeData = async () => {
-    try {
-
-      setDeals(mockDeals);
-    } catch (error) {
-      console.error('Failed to load home data:', error);
-    }
-  };
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await loadHomeData();
     setIsRefreshing(false);
   };
 
@@ -150,14 +117,15 @@ const mockDeals = [
   const renderDealItem = ({item}: any) => (
     <DealCard
       deal={item}
-      onPress={() => navigation.navigate('CreateProduct')}
+      onPress={() => navigation.navigate('ProductDetails', {product: item?.id})}
+      // onPress={() => navigation.navigate('CreateProduct')}
     />
   );
 
   const renderCategoryItem = ({item}: any) => (
     <CategoryCard
       category={item}
-      onPress={() => navigation.navigate('Search', {category: item.id})}
+      onPress={() => navigation.navigate('CategoryPageScreen', {categoryId: item.category_id})}
     />
   );
 
@@ -225,14 +193,20 @@ const mockDeals = [
       {/* Categories */}
       <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
         <Text style={[styles.sectionTitle,{padding:20}]}>Categories</Text>
-        <FlatList
-          data={categories}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalList}
-        />
+        {loading ? (
+          <View style={{alignItems: 'center', justifyContent: 'center'}}>
+            <Text >Loading...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={categories}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        )}
       </Animatable.View>
 
       {/* Deals & Discounts */}
