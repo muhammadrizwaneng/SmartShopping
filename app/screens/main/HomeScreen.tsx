@@ -34,6 +34,7 @@ const HomeScreen = () => {
    const user = useSelector((state: AppState) => state.user);
 
   const [recommendedProducts, setRecommendedProducts] = useState([]);
+  const [discountedProducts, setDiscountedProducts] = useState([]);
   const [deals, setDeals] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -74,42 +75,31 @@ const HomeScreen = () => {
     }
   };
 
+  const fetchDisountedProducts = async () => {
+
+    const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_DISCOUNTED_PRODUCTS}`;
+    try {
+      const response = await axios.get(URL);
+      if (response?.data && response?.data?.length > 0) {
+        // console.log("response?.data in fetchDisountedProducts", response?.data);
+          setDiscountedProducts(response?.data);
+      }
+    } catch (error) {
+      console.error(
+        'Failed to fetch product details:',
+        error.response?.data || error.message,
+      );
+      return null;
+    }
+  };
+
+
   useEffect(() => {
     fetchCategoriesWithProductCounts();
     fetchProductsList() 
+    fetchDisountedProducts();
   }, [isFocused]);
-// const mockProducts = [
-//   {
-//     id: '1',
-//     name: 'Wireless Bluetooth Headphones',
-//     price: 79.99,
-//     originalPrice: 99.99,
-//     image: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg',
-//     rating: 4.5,
-//     reviewCount: 128,
-//     category: 'electronics',
-//   },
-//   {
-//     id: '2',
-//     name: 'Smart Fitness Watch',
-//     price: 199.99,
-//     originalPrice: 249.99,
-//     image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg',
-//     rating: 4.3,
-//     reviewCount: 89,
-//     category: 'electronics',
-//   },
-//   {
-//     id: '3',
-//     name: 'Organic Coffee Beans',
-//     price: 24.99,
-//     image: 'https://images.pexels.com/photos/894695/pexels-photo-894695.jpeg',
-//     rating: 4.7,
-//     reviewCount: 256,
-//     category: 'food',
-//   },
-// ];
-
+// 
 const mockDeals = [
   {
     id: '1',
@@ -254,7 +244,7 @@ const mockDeals = [
           </TouchableOpacity>
         </View>
         <FlatList
-          data={deals}
+          data={discountedProducts}
           renderItem={renderDealItem}
           keyExtractor={(item) => item.id}
           horizontal

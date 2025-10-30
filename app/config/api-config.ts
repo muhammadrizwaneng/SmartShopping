@@ -15,7 +15,8 @@ const ApiConfig = {
   FETCH_CATEGORIES_WITH_PRODUCT_COUNTS:'category/categories-with-product-count',
   FETCH_PRODUCTS:'products/product',
   APPLY_DISCOUNT:'products/apply-discount',
-  FETCH_LIST_PRODUCTS:'products/getAllProducts'
+  FETCH_LIST_PRODUCTS:'products/getAllProducts',
+  FETCH_DISCOUNTED_PRODUCTS:'products/get-discounted-products',
 };
 
 export default ApiConfig;

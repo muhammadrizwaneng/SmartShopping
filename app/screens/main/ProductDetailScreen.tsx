@@ -20,10 +20,6 @@ const ProductDetailScreen = (props) => {
   const [productData, setProductData] = useState(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [activeMainImage, setActiveMainImage] = useState(null);
-  const [appliedDiscount, setAppliedDiscount] = useState(null); 
-  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
-  const [discountInput, setDiscountInput] = useState(''); 
-  const [isModalVisible, setIsModalVisible] = useState(false); 
   const isFocused = useIsFocused();
 
   const fetchProductDetails = async (product_id) => {
@@ -53,9 +49,6 @@ const ProductDetailScreen = (props) => {
     }
   }, [isFocused]);
 
-  const handleSelectSuggestion = (percentage) => {
-    setDiscountInput(String(percentage));
-  };
 
   const getDisplayPrice = () => {
     let price;
@@ -74,10 +67,6 @@ const ProductDetailScreen = (props) => {
       }
       
     }
-    // console.log("=-=productData",productData)
-    // if (price !== null && appliedDiscount?.discountprice) {
-    //   return Math.max(0, price - appliedDiscount.discountprice);
-    // }
 
     return price;
   }
@@ -106,127 +95,6 @@ const ProductDetailScreen = (props) => {
 
   const handleGalleryImageSelect = url => {
     setActiveMainImage(url);
-  };
-
-  const handleApplyDiscount = async () => {
-    const discountPercentage = parseFloat(discountInput);
-    let selectedVariantName:any
-    if(productData?.has_variants){
-      selectedVariantName = getSelectedVariantName();
-    }
-    if (isNaN(discountPercentage) || discountPercentage <= 0 || discountPercentage > 100) {
-      Alert.alert('Invalid Discount', 'Please enter a valid percentage between 1 and 100.');
-      return;
-    }
-
-    const currentPrice = getDisplayPrice();
-    const currentProductId = productData?._id; 
-
-    if (!currentProductId || isApplyingDiscount) return;
-      // const discountAmount = currentPrice * (discountPercentage / 100);
-
-
-    setIsApplyingDiscount(true);
-
-    try {
-      // Calculate discount amount
-      const payload = {
-        product_id: productData?._id, 
-        discount_percent: discountPercentage,
-        variant_name: selectedVariantName
-      };
-
-      const response = await axios.post(`${ApiConfig.BASE_URL}${ApiConfig.APPLY_DISCOUNT}`,payload)
-      if(response?.data?.success == true){
-        const mockResponse = {
-            success: true,
-            discount_amount: response?.data, 
-            discount_percentage: discountPercentage,
-            message: `${discountPercentage}% discount applied!`
-        };
-        setAppliedDiscount(mockResponse);
-        fetchProductDetails(props?.route?.params?.product);
-        setIsModalVisible(false);
-        setDiscountInput(''); // Clear input after applying
-        // Alert.alert('Success', mockResponse.message);
-      }
-      
-    } catch (error) {
-      console.error('Failed to apply discount:', error);
-      setAppliedDiscount(null); 
-      Alert.alert('Error', 'Discount could not be applied. Please try again.');
-    } finally {
-      setIsApplyingDiscount(false);
-    }
-  };
-
-   const getSelectedVariantName = () => {
-    if (productData?.has_variants && productData.variants?.length) {
-      return productData.variants[selectedVariantIndex]?.name;
-    }
-    return null;
-  };
-
-  const renderDiscountModalContent = () => {
-    const suggestions = [5, 10, 15, 20, 50, 70];
-    
-    return (
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>Apply Discount</Text>
-        
-        <Text style={styles.modalSubtitle}>
-          Enter discount percentage
-        </Text>
-
-        {/* Input Field */}
-        <TextInput
-          style={styles.discountTextInputModal}
-          placeholder="Enter % value (1-100)"
-          placeholderTextColor="#999"
-          keyboardType="numeric"
-          value={discountInput}
-          onChangeText={text => setDiscountInput(text.replace(/[^0-9.]/g, ''))}
-        />
-
-        {/* Quick Suggestions */}
-        <Text style={styles.suggestionsTitle}>Quick Suggestions</Text>
-        <View style={styles.suggestionsContainer}>
-          {suggestions.map((percent) => (
-            <TouchableOpacity
-              key={percent}
-              style={styles.suggestionChip}
-              onPress={() => setDiscountInput(String(percent))}
-            >
-              <Text style={styles.suggestionText}>{percent}%</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.modalButtonsContainer}>
-          <TouchableOpacity 
-            style={[styles.modalButton, styles.cancelButton]}
-            onPress={() => {
-              setIsModalVisible(false);
-              setDiscountInput('');
-            }}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.modalButton, styles.applyButton, 
-                    (!discountInput || isApplyingDiscount) && styles.applyButtonDisabled]}
-            onPress={handleApplyDiscount}
-            disabled={!discountInput || isApplyingDiscount}
-          >
-            <Text style={styles.applyButtonText}>
-              {isApplyingDiscount ? 'Applying...' : 'Apply Discount'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
   };
 
   return (
@@ -298,7 +166,7 @@ const ProductDetailScreen = (props) => {
               </Text>
             )}
 
-            {productData?.price && productData?.price > displayPrice && !appliedDiscount && (
+            {productData?.price && productData?.price > displayPrice  && (
               <Text style={styles.basePrice}>
                 ${productData?.price.toFixed(2)}
               </Text>
@@ -313,19 +181,6 @@ const ProductDetailScreen = (props) => {
             </View>
           )}
         </View>
-        
-        {/* Discount Button Section */}
-        <View style={styles.discountInputRow}>
-          <TouchableOpacity
-            style={styles.addDiscountButton}
-            onPress={() => setIsModalVisible(true)} 
-          >
-            <Text style={styles.addDiscountButtonText}>
-              {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent) || (productData?.discount_percent)) ? 'Edit Discount' : 'Add Discount'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.ratingRow}>
           {[...Array(5)].map((_, i) => (
             <FontAwesomeIcon
@@ -417,20 +272,6 @@ const ProductDetailScreen = (props) => {
           <Text style={styles.cartButtonText}>Add to Cart</Text>
         </TouchableOpacity>
       </View>
-      
-      {/* Centered Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <View style={styles.centeredModalOverlay}>
-          <View style={styles.centeredModalView}>
-            {renderDiscountModalContent()}
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };

@@ -35,7 +35,12 @@ const DealCard: React.FC<DealCardProps> = ({deal, onPress}) => {
         
         <View style={styles.header}>
           <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>{deal.discount}% OFF</Text>
+            {deal?.has_variants && deal?.variants[0]?.discount_percent != null ? (
+              <Text style={styles.discountText}>{deal?.variants[0]?.discount_percent}% OFF</Text>
+            ) : !deal.has_variants && deal?.discount_percent != null &&  (
+              <Text style={styles.discountText}>{deal?.discount_percent}% OFF</Text>
+            )}
+            {/* <Text style={styles.discountText}>{deal.discount_percent}% OFF</Text> */}
           </View>
           <View style={styles.timeContainer}>
             <FontAwesomeIcon icon={faTimes} size={12} color="white" />
@@ -45,17 +50,35 @@ const DealCard: React.FC<DealCardProps> = ({deal, onPress}) => {
         </View>
         
          <Image
-            source={{ uri: deal.image }}
+            source={{ uri: deal?.main_image_url }}
             style={styles.image}
-            resizeMode="cover"
+            resizeMode="contain"
          />
         <View style={styles.content}>
           <Text style={styles.name} numberOfLines={2}>
             {deal.name}
           </Text>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>${deal.price}</Text>
-            <Text style={styles.originalPrice}>${deal.originalPrice}</Text>
+            {/* <View > */}
+              {((!deal?.has_variants && deal?.discount_price != null)) ? (
+                <>
+                  <Text style={styles.price}>${!deal?.has_variants && deal?.discount_price}</Text>
+                  <Text style={styles.originalPrice}>${((!deal?.has_variants &&deal?.price) )}</Text>
+                </>
+              ) : !deal?.has_variants && (
+                <Text style={styles.price}>${((!deal?.has_variants &&deal?.price) )}</Text>
+              )}
+              {((deal?.has_variants && deal?.variants[0]?.discountprice != null)) ? (
+                <>
+                  <Text style={styles.price}>${deal?.has_variants &&deal?.variants[0]?.discountprice}</Text>
+                  <Text style={styles.originalPrice}>${((deal?.has_variants &&deal?.variants[0]?.price) )}</Text>
+                </>
+              ) : deal?.has_variants && (
+                <Text style={styles.price}>${((deal?.has_variants &&deal?.variants[0]?.price) )}</Text>
+              )}
+            {/* </View> */}
+            {/* <Text style={styles.price}>${deal.price}</Text> */}
+            {/* <Text style={styles.originalPrice}>${deal.originalPrice}</Text> */}
           </View>
         </View>
       </LinearGradient>
