@@ -109,19 +109,15 @@ const authSlice = createSlice({
 
     // LOGOUT
     builder.addCase(logoutUser.fulfilled, (state) => {
-      // Clear AsyncStorage
-      AsyncStorage.removeItem('userData');
-      AsyncStorage.removeItem('token');
-      
-      // Reset state
-      state.isLoggedIn = false;
-      state.userInfo = null;
-      state.token = null;
-      state.loading = false;
-      state.isLoggedIn = false;
-      state.token = null;
-      state.userInfo = null;
-      state.error = null;
+      // Reset all state to initial values
+      return {
+        ...state,
+        isLoggedIn: false,
+        userInfo: null,
+        token: null,
+        loading: false,
+        error: null
+      };
     });
   },
 });

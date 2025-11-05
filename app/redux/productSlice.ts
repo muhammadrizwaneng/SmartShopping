@@ -1,4 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit';
+
+// Add a reset action that can be used to reset the state
+export const resetProducts = createAction('products/reset');
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CallServiceFor } from '../services/call_services_for';
 import ApiConfig from '../config/api-config';
@@ -76,7 +79,8 @@ const productSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch products';
-      });
+      })
+      .addCase(resetProducts, () => initialState);
   },
 });
 

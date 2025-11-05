@@ -1,7 +1,10 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
-import {typography} from '../theme/typography';
-import {spacing} from '../theme/spacing';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/cartSlice';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
 import { faHeart, faStar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { colors } from '../theme/color';
@@ -23,53 +26,55 @@ interface ProductCardProps {
   style?: any;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({product, onPress, style}) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) => {
+  const dispatch = useDispatch();
+
+  const handleAddToCart = () => {
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      })
+    );
+    Alert.alert('Success', `${product.name} added to cart!`);
+  };
+
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
       <View style={styles.imageContainer}>
         <Image
-            source={{ uri: product?.main_image_url }}
-            style={styles.image}
-            resizeMode="contain"
-            />
-        {((product?.has_variants && product?.variants[0]?.discount_percent != null)|| (product?.discount_percent)) && (
+          source={{ uri: product?.main_image_url }}
+          style={styles.image}
+          resizeMode="contain"
+        />
+        {((product?.has_variants && product?.variants[0]?.discount_percent != null) || (product?.discount_percent)) && (
           <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>{((product?.has_variants &&product?.variants[0]?.discount_percent) || (product?.discount_percent) )}%</Text>
+            <Text style={styles.discountText}>{((product?.has_variants && product?.variants[0]?.discount_percent) || (product?.discount_percent))}%</Text>
           </View>
         )}
         <TouchableOpacity style={styles.favoriteButton}>
-            <FontAwesomeIcon icon={faHeart} size={18} color={colors.gray} />
+          <FontAwesomeIcon icon={faHeart} size={18} color={colors.gray} />
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
         </Text>
-        
+
         <View style={styles.ratingContainer}>
-            <FontAwesomeIcon icon={faStar}  size={14} color={colors.rating} />
+          <FontAwesomeIcon icon={faStar} size={14} color={colors.rating} />
           <Text style={styles.rating}>{product.rating}</Text>
           <Text style={styles.reviewCount}>({product.reviewCount})</Text>
         </View>
-        
-        <View style={styles.priceContainer}>
-          {((!product?.has_variants && product?.discount_price != null)) ? (
-            <>
-              <Text style={styles.price}>${!product?.has_variants &&product?.discount_price}</Text>
-              <Text style={styles.originalPrice}>${((!product?.has_variants &&product?.price) )}</Text>
-            </>
-          ) : !product?.has_variants && (
-            <Text style={styles.price}>${((!product?.has_variants &&product?.price) )}</Text>
-          )}
-          {((product?.has_variants && product?.variants[0]?.discountprice != null)) ? (
-            <>
-              <Text style={styles.price}>${product?.has_variants &&product?.variants[0]?.discountprice}</Text>
-              <Text style={styles.originalPrice}>${((product?.has_variants &&product?.variants[0]?.price) )}</Text>
-            </>
-          ) : product?.has_variants && (
-            <Text style={styles.price}>${((product?.has_variants &&product?.variants[0]?.price) )}</Text>
-          )}
+
+        <View style={styles.footer}>
+          <Text style={styles.price}>${product.price}</Text>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
+            <Text style={styles.addButtonText}>+ Add</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>

@@ -18,7 +18,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setUserInfo } from '../redux/userSlice';
+import { logoutUser, setUserInfo } from '../redux/userSlice';
 // import { clearCart } from '../redux/cartSlice'; // Import if you have a cart slice
 
 const ProfileScreen = () => {
@@ -59,18 +59,13 @@ const ProfileScreen = () => {
           onPress: async () => {
             try {
               // Clear token and user data
-              await AsyncStorage.removeItem('token');
-              await AsyncStorage.removeItem('userData');
-              
+              await AsyncStorage.multiRemove(['token', 'userData']);
+               dispatch({ type: 'auth/logout/fulfilled' });
               // Reset Redux state
-              dispatch(setUserInfo(null));
+              dispatch(logoutUser());
               // dispatch(clearCart()); // Clear cart if you have one
               
-              // Navigate to login screen
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'SignIn' }],
-              });
+
             } catch (error) {
               console.error('Error during logout:', error);
             }

@@ -9,8 +9,6 @@ import {
   Platform,
   Alert,
   ScrollView,
-  Image,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,27 +17,6 @@ import {typography} from '../../theme/typography';
 import {spacing} from '../../theme/spacing';
 import { colors } from '../../theme/color';
 import { faEnvelope, faEye, faEyeSlash, faLock, faPerson } from '@fortawesome/free-solid-svg-icons';
-import CountryPicker from 'react-native-country-picker-modal';
-import ImageCropPicker from 'react-native-image-crop-picker';
-
-
-    const getEmojiFlag = (countryCode) => {
-      const flag = countryCode
-        .toUpperCase()
-        .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397));
-      return flag;
-    };
-
-  const getEmojiFlagByCca2 = (countryCode) => {
-    const codePoints = countryCode
-      .toUpperCase()
-      .split('')
-      .map((char) => 0x1f1e6 - 65 + char.charCodeAt(0));
-    const flag = String.fromCodePoint(...codePoints);
-    console.log('Flag emoji:', flag); 
-    return flag;
-  };
-
 
 const SignupScreen = ({navigation}: any) => {
   const [name, setName] = useState('');
@@ -49,16 +26,7 @@ const SignupScreen = ({navigation}: any) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
-    const [phoneNumber, setPhoneNumber] = useState('');
 
-  const [country, setCountry] = useState({
-    code: 'US',
-    callingCode: '1',
-    flag: getEmojiFlag('US'),
-  });
-
-  
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -77,47 +45,22 @@ const SignupScreen = ({navigation}: any) => {
 
   };
 
-
-
-
-    const handleCountrySelect = (country) => {
-    if (country.callingCode[0]) {
-      setCountry({
-        code: country.cca2,
-        callingCode: country.callingCode[0],
-        flag: getEmojiFlagByCca2(country.cca2),
-      });
-    } else {
-      setCountry({
-        code: 'US',
-        callingCode: '1',
-        flag: getEmojiFlag('US'),
-      });
-    }
-  };
-    const handleTextChange = (text: string) => {
-      let filteredText = text.replace(/[^0-9]/g, '');
-      setPhoneNumber(filteredText);
-    };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
-        <View style={{width:227,height:227,position:'absolute',top:0,left:0}}>
-          <Image source={require('../../assets/images/mask_group_4.png')} style={{width:'100%',height:'100%'}} />
-        </View>
-        <View style={{width:93,height:209,position:'absolute',alignSelf:'flex-end',marginTop:100}}>
-          <Image source={require('../../assets/images/mask_group_5.png')} style={{width:'100%',height:'100%'}} />
-        </View>
-          <Text style={{color:'#000',fontSize:24,fontFamily:'nunito-sans.bold',marginTop:130,marginLeft:50,fontFamily:'Raleway-Bold',fontSize:50,marginBottom:63}}>Create {'\n'}Account</Text>
-
-        <View style={{width:90,height:90,marginLeft:50}}>
-          <Image source={require('../../assets/images/Upload_Photo.png')} style={{width:'100%',height:'100%'}} />
-        </View>
+      <LinearGradient
+        colors={[colors.gradientStart, colors.gradientEnd]}
+        style={styles.gradient}>
+        
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View  style={styles.formContainer}>
+          <Animatable.View animation="fadeInDown" style={styles.header}>
+            <FontAwesomeIcon icon={faPerson} size={60} color={colors.white}/>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Join us for smart shopping experience</Text>
+          </Animatable.View>
+
+          <Animatable.View animation="fadeInUp" delay={300} style={styles.formContainer}>
             <View style={styles.inputContainer}>
               <FontAwesomeIcon icon={faPerson} size={20} color={colors.gray} />
               <TextInput
@@ -185,76 +128,6 @@ const SignupScreen = ({navigation}: any) => {
                  />
               </TouchableOpacity>
             </View>
-            <View style={[styles.countryPickMainView]}>
-              <TouchableOpacity
-                onPress={() => setShowCountryPicker(true)}
-                style={{ flexDirection: 'row', alignItems: 'center' }}
-              >
-                <View style={{ marginLeft: 10, marginTop: 5 }}>
-                  <CountryPicker
-                    withFlag
-                    withCallingCode
-                    withFilter
-                    visible={showCountryPicker}
-                    onSelect={handleCountrySelect}
-                    countryCode={country.code || country.countryShortName}
-                    onClose={() => setShowCountryPicker(false)}
-                  />
-                </View>
-
-                {country && country.callingCode && (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 3,
-                      marginLeft: -8,
-                      marginTop:5
-                    }}
-                  >
-                    {/* <Text style={styles.countryCode}>
-                      +{country.callingCode}
-                    </Text> */}
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              <TouchableWithoutFeedback>
-                <View
-                  style={[
-                    styles.flexAlign,
-                    { flexDirection: 'row', alignItems: 'center' },
-                  ]}
-                >
-                  <View
-                    style={{
-                      width: 1,
-                      height: 18,
-                      marginHorizontal: 8,
-                      backgroundColor: '#CECECE',
-                    }}
-                  />
-                  <TextInput
-                    style={{
-                      width: '87%',
-                      color: '#000000',
-                      fontFamily: 'Poppins-Regular',
-                      paddingVertical: 10,
-                      paddingTop: Platform.OS == 'android' ? 16 : 10,
-                      textAlignVertical: 'center'
-                    }}
-                    placeholderTextColor='#999999'
-                    placeholder='Phone No'
-                    value={phoneNumber}
-                    onChangeText={(text) => {
-                      handleTextChange(text);
-                    }}
-                    maxLength={11}
-                    pointerEvents='box-only'
-                  />
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
 
             <TouchableOpacity
               style={styles.signupButton}
@@ -271,8 +144,9 @@ const SignupScreen = ({navigation}: any) => {
                 <Text style={styles.loginLink}>Sign In</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animatable.View>
         </ScrollView>
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 };
@@ -280,7 +154,6 @@ const SignupScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   gradient: {
     flex: 1,
@@ -298,6 +171,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.fontSize['3xl'],
+    fontWeight: typography.fontWeight.bold,
     color: colors.white,
     marginTop: spacing.md,
     textAlign: 'center',
@@ -317,8 +191,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 20,
+    backgroundColor: colors.white,
+    borderRadius: spacing.borderRadius.lg,
     marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
     ...spacing.shadow.md,
@@ -328,7 +202,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 52
+    height: 50,
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
   },
   eyeIcon: {
     padding: spacing.sm,
@@ -347,7 +223,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
   },
-  flexAlign: { flexDirection: 'row', alignItems: 'center' },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -360,20 +235,8 @@ const styles = StyleSheet.create({
   loginLink: {
     color: colors.white,
     fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
     textDecorationLine: 'underline',
-  },
-  countryPickMainView: {
-    flexDirection: 'row',
-    backgroundColor: '#F8F8F8',
-    borderColor: '#F8F8F8',
-    borderRadius: 20,
-    alignItems: 'center',
-    height: 52,
-  },
-  countryCode: {
-    fontSize: 10,
-    marginRight: 10,
-    fontFamily: 'Poppins-Regular'
   },
 });
 

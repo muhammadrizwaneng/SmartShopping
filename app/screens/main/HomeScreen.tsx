@@ -42,6 +42,7 @@ const HomeScreen = () => {
   const { products, loading: productsLoading, error: productsError } = useSelector((state: any) => state.products);
   const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: any) => state.categories);
   const user = useSelector((state: any) => state.auth.userInfo);
+
   
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,7 +73,7 @@ const HomeScreen = () => {
   const renderDealItem = ({item}: any) => (
     <DealCard
       deal={item}
-      onPress={() => navigation.navigate('ProductDetails', {product: item?.id})}
+      onPress={() => navigation.navigate('ProductDetails', {product: item?._id})}
       // onPress={() => navigation.navigate('CreateProduct')}
     />
   );

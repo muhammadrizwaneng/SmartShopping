@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
@@ -72,123 +73,122 @@ const LoginScreen = ({navigation}: any) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <LinearGradient
-        colors={[colors.gradientStart, colors.gradientEnd]}
-        style={styles.gradient}>
-        {/* Header */}
-        <Animatable.View animation="fadeInDown" style={styles.header}>
-          <FontAwesomeIcon icon={faStore} size={60} color={colors.white} />
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>
-            Sign in to continue shopping smart
-          </Text>
-        </Animatable.View>
+    >
+        <Image source={require('../../assets/images/Mask_group.png')} />
 
-        {/* Form */}
-        <Animatable.View
-          animation="fadeInUp"
-          delay={300}
-          style={styles.formContainer}>
-          {/* Email */}
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon
-              icon={faEnvelope}
-              size={20}
-              color={colors.gray}
-              style={styles.inputIcon}
-            />
-            <Controller
-              control={control}
-              name="email"
-              render={({field: {onChange, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email"
-                  placeholderTextColor={colors.gray}
-                  value={value}
-                  onChangeText={onChange}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              )}
-            />
+          <View style={{height:135,width:88,alignSelf:'flex-end',marginTop:-150}}>
+            <Image source={require('../../assets/images/mask_group_2.png')} style={{width:'100%',height:'100%'}}/>
           </View>
-          {errors.email && (
-            <Text style={styles.errorText}>{errors.email.message}</Text>
-          )}
-
-          {/* Password */}
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon
-              icon={faLock}
-              size={20}
-              color={colors.gray}
-              style={styles.inputIcon}
-            />
-            <Controller
-              control={control}
-              name="password"
-              render={({field: {onChange, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor={colors.gray}
-                  value={value}
-                  onChangeText={onChange}
-                  secureTextEntry={!showPassword}
-                />
-              )}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeIcon}>
+          <View style={{height:450,width:350,alignSelf:'flex-end',position:'absolute',bottom:0,right:-70}}>
+            <Image source={require('../../assets/images/mask_group_3.png')} style={{width:'100%',height:'100%'}}/>
+          </View>
+          <View style={{paddingHorizontal:20,marginTop:52}}>
+            <Text style={styles.subtitle}>
+              Login
+            </Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:5,    marginTop:19,
+    marginBottom:24}}>
+              <Text style={styles.subtitle1}>Good to see you back!</Text>
+              <Image source={require('../../assets/images/heart.png')} style={{width:17,height:17}}/>
+            </View>
+            <View style={styles.inputContainer}>
               <FontAwesomeIcon
-                icon={showPassword ? faEye : faEyeSlash}
+                icon={faEnvelope}
                 size={20}
                 color={colors.gray}
+                style={styles.inputIcon}
               />
+              <Controller
+                control={control}
+                name="email"
+                render={({field: {onChange, value}}) => (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    placeholderTextColor={colors.gray}
+                    value={value}
+                    onChangeText={onChange}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                )}
+              />
+            </View>
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email.message}</Text>
+            )}
+
+            {/* Password */}
+            <View style={styles.inputContainer}>
+              <FontAwesomeIcon
+                icon={faLock}
+                size={20}
+                color={colors.gray}
+                style={styles.inputIcon}
+              />
+              <Controller
+                control={control}
+                name="password"
+                render={({field: {onChange, value}}) => (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor={colors.gray}
+                    value={value}
+                    onChangeText={onChange}
+                    secureTextEntry={!showPassword}
+                  />
+                )}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}>
+                <FontAwesomeIcon
+                  icon={showPassword ? faEye : faEyeSlash}
+                  size={20}
+                  color={colors.gray}
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password && (
+              
+                <Text style={styles.errorText}>{errors.password.message}</Text>
+  
+            )}
+
+            {/* Forgot Password */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
-          </View>
-          {errors.password && (
-            
-              <Text style={styles.errorText}>{errors.password.message}</Text>
- 
-          )}
 
-          {/* Forgot Password */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
-            style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          {/* Login Button */}
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={handleSubmit(onSubmit)}
-            disabled={isLoading}>
-            <Text style={styles.loginButtonText}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Signup */}
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-              <Text style={styles.signupLink}>Sign Up</Text>
+            {/* Login Button */}
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleSubmit(onSubmit)}
+              disabled={isLoading}>
+              <Text style={styles.loginButtonText}>
+                {isLoading ? 'Signing In...' : 'Next'}
+              </Text>
             </TouchableOpacity>
+
+            {/* Signup */}
+            <View style={styles.signupContainer}>
+              <TouchableOpacity onPress={() => navigation.navigate('LandingScreen')}>
+                <Text style={styles.signupLink}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </Animatable.View>
-      </LinearGradient>
+
     </KeyboardAvoidingView>
   );
 };
 
+
+export default LoginScreen;
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  gradient: {flex: 1, paddingHorizontal: spacing.screenPadding},
+  container: {flex: 1,backgroundColor:'#fff'},
   header: {
     flex: 1,
     justifyContent: 'center',
@@ -197,24 +197,28 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.fontSize['3xl'],
-    fontWeight: typography.fontWeight.bold,
     color: colors.white,
     marginTop: spacing.md,
     textAlign: 'center',
   },
+  subtitle1:{
+    fontFamily:'nunito-sans.light',
+    fontSize: 19,
+    color: '#000',
+  },
   subtitle: {
-    fontSize: typography.fontSize.base,
-    color: colors.white,
-    marginTop: spacing.sm,
-    opacity: 0.9,
-    textAlign: 'center',
+    fontSize: 52,
+    color: '#000',
+    // marginTop: spacing.sm,
+    // opacity: 0.9,
+    // textAlign: 'center',
   },
   formContainer: {flex: 1, justifyContent: 'center', paddingBottom: 50},
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: spacing.borderRadius.lg,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 20,
     marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
     ...spacing.shadow.md,
@@ -222,9 +226,9 @@ const styles = StyleSheet.create({
   inputIcon: {marginRight: spacing.sm},
   input: {
     flex: 1,
-    height: 50,
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
+    height: 52,
+    // fontSize: typography.fontSize.base,
+    // color: colors.textPrimary,
   },
   eyeIcon: {padding: spacing.sm},
   errorText: {
@@ -241,17 +245,17 @@ const styles = StyleSheet.create({
   forgotPassword: {alignSelf: 'flex-end', marginBottom: spacing.lg},
   forgotPasswordText: {color: colors.white, fontSize: typography.fontSize.sm},
   loginButton: {
-    backgroundColor: colors.white,
-    borderRadius: spacing.borderRadius.lg,
+    backgroundColor: '#004CFF',
+    borderRadius: 20,
     paddingVertical: spacing.md,
     alignItems: 'center',
     marginBottom: spacing.lg,
     ...spacing.shadow.md,
   },
   loginButtonText: {
-    color: colors.primary,
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
+    color: colors.white,
+    fontSize: 22,
+    fontFamily:'nunito-sans.light',
   },
   signupContainer: {
     flexDirection: 'row',
@@ -260,11 +264,8 @@ const styles = StyleSheet.create({
   },
   signupText: {color: colors.white, fontSize: typography.fontSize.base},
   signupLink: {
-    color: colors.white,
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    textDecorationLine: 'underline',
+    color: colors.black,
+    fontSize: 15,
+    fontFamily:'nunito-sans.light',
   },
 });
-
-export default LoginScreen;

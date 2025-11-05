@@ -15,16 +15,55 @@ import {faStar, faTruck} from '@fortawesome/free-solid-svg-icons';
 import ApiConfig from '../../config/api-config';
 import axios from 'axios';
 import {useIsFocused} from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { addToCart, CartItem } from '../../redux/cartSlice';
+
+interface ProductImage {
+  id: string;
+  image_url: string;
+  is_main: boolean;
+}
+
+interface ProductVariant {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  image_url?: string;
+  discount_percent?: number;
+}
+
+interface ProductData {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  main_image_url: string;
+  images: ProductImage[];
+  has_variants: boolean;
+  variants: ProductVariant[];
+  discount_percent?: number;
+}
+
+interface ProductDetailScreenProps {
+  route: {
+    params: {
+      product: string;
+    };
+  };
+}
 
 const ProductDetailScreen = (props) => {
-  const [productData, setProductData] = useState(null);
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const [activeMainImage, setActiveMainImage] = useState(null);
-  const isFocused = useIsFocused();
 
-  const fetchProductDetails = async (product_id) => {
+  const [productData, setProductData] = useState(null);
+  // const [productData, setProductData] = useState<ProductData | null>(null);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [activeMainImage, setActiveMainImage] = useState<string | null>(null);
+  const isFocused = useIsFocused();
+  const dispatch = useDispatch();
+  const fetchProductDetails = async (product_id: string) => {
     const PRODUCT_ID = product_id;
-    // const PRODUCT_ID = '68e35fad980706ff128da73d';
     const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_PRODUCTS}/${PRODUCT_ID}`;
 
     try {
@@ -45,6 +84,7 @@ const ProductDetailScreen = (props) => {
 
   useEffect(() => {
     if(props?.route?.params?.product != "" && props?.route?.params?.product!= null){
+
       fetchProductDetails(props?.route?.params?.product);
     }
   }, [isFocused]);
@@ -53,39 +93,27 @@ const ProductDetailScreen = (props) => {
   const getDisplayPrice = () => {
     let price;
     if (productData?.has_variants && productData.variants?.length) {
-
-      if(productData.variants[selectedVariantIndex]?.discountprice != null ){
-        price = productData.variants[selectedVariantIndex]?.discountprice
-      } else {
-        price = productData.variants[selectedVariantIndex]?.price;
-      }
+      price = productData.variants[selectedVariantIndex]?.price;
     } else {
-      if(productData?.discount_percent != null){
-        price = productData?.discount_price
-      } else {
-        price = productData?.price;
-      }
-      
+      price = productData.price;
     }
-
     return price;
-  }
+  };
 
-  const getDisplayStock = () => {
-    if (productData?.has_variants && productData.variants?.length) {
-      return productData.variants.reduce(
-        (total, variant) => total + (variant.stock || 0),
-        0,
-      );
+  const getDisplayStock = (): number => {
+    if (!productData) return 0;
+    
+    if (productData.has_variants && productData.variants?.length > 0) {
+      return productData.variants[selectedVariantIndex]?.stock || 0;
     }
-    return productData?.stock;
+    return productData.stock || 0;
   };
 
   const displayPrice = getDisplayPrice();
   const displayStock = getDisplayStock();
   const isInStock = displayStock > 0;
   
-  const handleVariantSelect = index => {
+  const handleVariantSelect = (index: number) => {
     setSelectedVariantIndex(index);
   };
   
@@ -93,8 +121,43 @@ const ProductDetailScreen = (props) => {
     return <Text style={{padding: 20}}>Loading product details...</Text>;
   }
 
-  const handleGalleryImageSelect = url => {
+  const handleGalleryImageSelect = (url: string) => {
     setActiveMainImage(url);
+  };
+
+  const handleAddToCart = () => {
+    if (!productData) return;
+
+    // For products with variants, use the selected variant's details
+    if (productData.has_variants && productData.variants?.length > 0) {
+      const selectedVariant = productData.variants[selectedVariantIndex];
+      if (!selectedVariant) return;
+      
+      const cartItem: Omit<CartItem, 'quantity'> = {
+        id: selectedVariant.id,
+        productId: productData.id,
+        name: `${productData.name} - ${selectedVariant.name || 'Variant'}`,
+        price: selectedVariant.price,
+        image: selectedVariant.image_url || productData.main_image_url,
+        variantId: selectedVariant.id,
+        variantName: selectedVariant.name,
+      };
+      
+      dispatch(addToCart(cartItem));
+      Alert.alert('Success', `${productData.name} (${selectedVariant.name || 'Variant'}) added to cart!`);
+    } else {
+      // For simple products without variants
+      const cartItem: Omit<CartItem, 'quantity'> = {
+        id: productData._id,
+        productId: productData._id,
+        name: productData.name,
+        price: productData.price,
+        image: productData.main_image_url,
+      };
+      
+      dispatch(addToCart(cartItem));
+      Alert.alert('Success', `${productData.name} added to cart!`);
+    }
   };
 
   return (
@@ -281,7 +344,7 @@ const ProductDetailScreen = (props) => {
       </View>
       
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.cartButton}>
+        <TouchableOpacity style={styles.cartButton} onPress={handleAddToCart}>
           <Text style={styles.cartButtonText}>Add to Cart</Text>
         </TouchableOpacity>
       </View>

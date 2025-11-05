@@ -1,9 +1,11 @@
 import React from 'react';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { View, Text } from 'react-native';
+import { useSelector } from 'react-redux';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faSearch, faList, faUser,faMagnifyingGlass as faSearchOutline } from '@fortawesome/free-solid-svg-icons';
-import { faHome as faHomeOutline,faListAlt, faUser as faUserOutline } from '@fortawesome/free-regular-svg-icons';
+import { faHome, faSearch, faList, faUser, faShoppingCart, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faHome as faHomeOutline, faListAlt, faUser as faUserOutline, faShoppingCart as faShoppingCartOutline } from '@fortawesome/free-regular-svg-icons';
 
 // import SearchScreen from '../screens/main/SearchScreen';
 // import ShoppingListScreen from '../screens/main/ShoppingListScreen';
@@ -21,11 +23,13 @@ import CreateProductScreen from '../screens/main/CreateProductScreen';
 import CategoryPageScreen from '../screens/main/CategoryPageScreen';
 import CategoriesScreen from '../screens/main/CategoriesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import CartScreen from '../screens/main/CartScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const HomeStack = () => (
+  
   <Stack.Navigator>
     <Stack.Screen 
       name="HomeMain" 
@@ -158,24 +162,62 @@ const MainNavigator = () => {
       <Tab.Screen 
         name="Search" 
         component={SearchStack}
-        options={{tabBarLabel: 'Categories'}}
+        options={{
+          tabBarLabel: 'Categories',
+          tabBarIcon: ({ focused, color, size }) => (
+            <FontAwesomeIcon 
+              icon={focused ? faSearch : faMagnifyingGlass} 
+              size={size} 
+              color={color} 
+            />
+          ),
+        }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{
+          tabBarLabel: 'Cart',
+          tabBarIcon: ({ focused, color, size }) => (
+            <View style={{ position: 'relative' }}>
+              <FontAwesomeIcon 
+                icon={focused ? faShoppingCart : faShoppingCartOutline} 
+                size={size} 
+                color={color} 
+              />
+              <View style={{
+                position: 'absolute',
+                top: -5,
+                right: -8,
+                backgroundColor: 'red',
+                borderRadius: 10,
+                width: 20,
+                height: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+                  {useSelector((state: any) => state.cart.items?.length) || 0}
+                </Text>
+              </View>
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
-        options={{tabBarLabel: 'Account'}}
+        options={{
+          tabBarLabel: 'Account',
+          tabBarIcon: ({ focused, color, size }) => (
+            <FontAwesomeIcon 
+              icon={focused ? faUser : faUserOutline} 
+              size={size} 
+              color={color} 
+            />
+          ),
+        }}
       />
-      {/* 
-      <Tab.Screen 
-        name="ShoppingList" 
-        component={ShoppingListScreen}
-        options={{tabBarLabel: 'List'}}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen}
-        options={{tabBarLabel: 'Profile'}}
-      /> */}
     </Tab.Navigator>
   );
 };

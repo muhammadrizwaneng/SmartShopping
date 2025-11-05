@@ -1,12 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface CartItem {
+export interface CartItem {
   id: string | number;
+  productId: string | number;
   name: string;
   price: number;
   quantity: number;
   image?: string;
+  variantId?: string | number;
+  variantName?: string;
 }
 
 interface CartState {

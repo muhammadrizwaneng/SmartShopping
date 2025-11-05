@@ -1,0 +1,69 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "app/assets/fonts/NunitoSans-Italic-VariableFont_YTLC,opsz,wdth,wght.ttf",
+      "sha1": "410740a6f03cfa4b36e22724178b7e9eb7920826"
+    },
+    {
+      "path": "app/assets/fonts/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf",
+      "sha1": "8c01360cd531b3c1988d314db01656c8ef45207c"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-Bold.ttf",
+      "sha1": "b887eb952d1891535389db7d1d1c127d1734bd97"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-ExtraBold.ttf",
+      "sha1": "6db23ee9e016f3e0c30b223579026c6b00ab9ec5"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-Heavy.ttf",
+      "sha1": "e1fca2daacf71e1ac6e397a5bbb9ef21019768ac"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-Light.ttf",
+      "sha1": "e9eb86427eaa4fe7e05e32902fc35742dcee4ccb"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-Medium.ttf",
+      "sha1": "6d7bd481efb4e28b13310d8f599f1a8a67b3fa87"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-Regular.ttf",
+      "sha1": "f7c22a60e4bbae4e0b673de414108ec1a5a50edf"
+    },
+    {
+      "path": "app/assets/fonts/Raleway-SemiBold.ttf",
+      "sha1": "68b768cec3815e7d4639d5f0dec54aeff913de53"
+    },
+    {
+      "path": "app/assets/fonts/SpaceMono-Regular.ttf",
+      "sha1": "fae3a5a43b50e0408fd61e14383d94a023d332b0"
+    },
+    {
+      "path": "app/assets/fonts/nunito-sans.bold.ttf",
+      "sha1": "8ebd43c3b1c36c1acacb5c59bd087da110eb47c7"
+    },
+    {
+      "path": "app/assets/fonts/nunito-sans.extralight.ttf",
+      "sha1": "a4c94084f250a7361674b87d80599a2858ce87ab"
+    },
+    {
+      "path": "app/assets/fonts/nunito-sans.italic.ttf",
+      "sha1": "2a1e4c2643b35f3e37f1e801ce52b983cf2a89f2"
+    },
+    {
+      "path": "app/assets/fonts/nunito-sans.light.ttf",
+      "sha1": "9d998eace8f83c2f67dfc016faf90a746f092d7b"
+    },
+    {
+      "path": "app/assets/fonts/nunito-sans.regular.ttf",
+      "sha1": "0660c9ab1b018a073e06d7a13b0b3959940effba"
+    },
+    {
+      "path": "app/assets/fonts/nunito-sans.semibold.ttf",
+      "sha1": "fc511583650c7855cf96d77ef5c939fa05a5638a"
+    }
+  ]
+}
