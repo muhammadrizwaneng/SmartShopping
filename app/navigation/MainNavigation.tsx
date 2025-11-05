@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faSearch, faList, faUser, faShoppingCart, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { faHome as faHomeOutline, faListAlt, faUser as faUserOutline, faShoppingCart as faShoppingCartOutline } from '@fortawesome/free-regular-svg-icons';
+import { faHome, faSearch, faList, faUser, faMagnifyingGlass,faShoppingCart } from '@fortawesome/free-solid-svg-icons';
+import { faHome as faHomeOutline, faListAlt, faUser as faUserOutline } from '@fortawesome/free-regular-svg-icons';
 
 // import SearchScreen from '../screens/main/SearchScreen';
 // import ShoppingListScreen from '../screens/main/ShoppingListScreen';
@@ -24,6 +24,7 @@ import CategoryPageScreen from '../screens/main/CategoryPageScreen';
 import CategoriesScreen from '../screens/main/CategoriesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CartScreen from '../screens/main/CartScreen';
+import UserDashboardScreen from '../screens/main/UserDashboard';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -31,6 +32,11 @@ const Stack = createNativeStackNavigator();
 const HomeStack = () => (
   
   <Stack.Navigator>
+    <Stack.Screen 
+      name="UserDashboard" 
+      component={UserDashboardScreen}
+      options={{headerShown: false}}
+    />
     <Stack.Screen 
       name="HomeMain" 
       component={HomeScreen} 
@@ -64,16 +70,8 @@ const HomeStack = () => (
         headerTintColor: colors.white,
       }}
     />
-    {/* 
-    <Stack.Screen 
-      name="PriceComparison" 
-      component={PriceComparisonScreen}
-      options={{
-        headerTitle: 'Price Comparison',
-        headerStyle: {backgroundColor: colors.primary},
-        headerTintColor: colors.white,
-      }}
-    /> */}
+    
+
   </Stack.Navigator>
 );
 
@@ -181,7 +179,7 @@ const MainNavigator = () => {
           tabBarIcon: ({ focused, color, size }) => (
             <View style={{ position: 'relative' }}>
               <FontAwesomeIcon 
-                icon={focused ? faShoppingCart : faShoppingCartOutline} 
+                icon={faShoppingCart} 
                 size={size} 
                 color={color} 
               />

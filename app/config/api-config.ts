@@ -11,6 +11,7 @@ const ApiConfig = {
 
 
   LOGIN: 'user/login',
+  SIGNUP: 'user/signup',
   FETCH_CATEGORY:'category/categories',
   FETCH_CATEGORIES_WITH_PRODUCT_COUNTS:'category/categories-with-product-count',
   FETCH_PRODUCTS:'products/product',

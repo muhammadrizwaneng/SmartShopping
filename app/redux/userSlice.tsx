@@ -72,6 +72,20 @@ const authSlice = createSlice({
         ...action.payload,
       };
     },
+    setSignupSuccess: (state, action) => {
+      console.log('action.payload:', action);
+      const { user, token } = action.payload;
+
+      state.userInfo = user;
+      state.token = token;
+      state.isLoggedIn = true;
+
+      // store data in AsyncStorage
+      AsyncStorage.setItem(
+        'userData',
+        JSON.stringify({ user, token, isLoggedIn: true })
+      );
+    },
   },
 
   extraReducers: (builder) => {
@@ -123,4 +137,4 @@ const authSlice = createSlice({
 });
 
 export default authSlice.reducer;
-export const { setUserInfo } = authSlice.actions;
+export const { setUserInfo,setSignupSuccess } = authSlice.actions;
