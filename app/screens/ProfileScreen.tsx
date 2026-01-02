@@ -1,19 +1,20 @@
 import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { 
-  faUser, 
-  faCreditCard, 
-  faShoppingBag, 
-  faCog, 
-  faInfoCircle, 
-  faLock, 
-  faUsers, 
-  faSignOutAlt, 
-  faChevronRight, 
+import {
+  faUser,
+  faCreditCard,
+  faShoppingBag,
+  faCog,
+  faInfoCircle,
+  faLock,
+  faUsers,
+  faSignOutAlt,
+  faChevronRight,
   faPencil,
   faEnvelope,
-  faPhone
+  faPhone,
+  faHeart
 } from '@fortawesome/free-solid-svg-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,7 +23,7 @@ import { logoutUser, setUserInfo } from '../redux/userSlice';
 // import { clearCart } from '../redux/cartSlice'; // Import if you have a cart slice
 
 const ProfileScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const userInfo = useSelector((state: any) => state.auth.userInfo);
 
@@ -60,11 +61,11 @@ const ProfileScreen = () => {
             try {
               // Clear token and user data
               await AsyncStorage.multiRemove(['token', 'userData']);
-               dispatch({ type: 'auth/logout/fulfilled' });
+              dispatch({ type: 'auth/logout/fulfilled' });
               // Reset Redux state
               dispatch(logoutUser());
               // dispatch(clearCart()); // Clear cart if you have one
-              
+
 
             } catch (error) {
               console.error('Error during logout:', error);
@@ -91,6 +92,9 @@ const ProfileScreen = () => {
       case 'Log Out':
         handleLogout();
         break;
+      case 'Wishlist':
+        navigation.navigate('Wishlist');
+        break;
       default:
         console.log('Menu item not handled:', text);
     }
@@ -105,23 +109,23 @@ const ProfileScreen = () => {
           style={styles.profileImage}
           defaultSource={require('../assets/images/three.jpg')}
         />
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.editButton}
           onPress={() => navigation.navigate('EditProfile')}
         >
           <FontAwesomeIcon icon={faPencil} size={14} color="white" />
         </TouchableOpacity>
         <Text style={styles.profileName}>
-          {userInfo?.username || 'Guest User'}
+          {userInfo?.name || 'Guest User'}
         </Text>
-        
+
         {userInfo?.email && (
           <View style={styles.infoRow}>
             <FontAwesomeIcon icon={faEnvelope} size={16} color="#666" style={styles.infoIcon} />
             <Text style={styles.infoText}>{userInfo.email}</Text>
           </View>
         )}
-        
+
         {userInfo?.phone && (
           <View style={styles.infoRow}>
             <FontAwesomeIcon icon={faPhone} size={16} color="#666" style={styles.infoIcon} />
@@ -138,6 +142,7 @@ const ProfileScreen = () => {
         <MenuItem icon={faInfoCircle} text="Help Center" onPress={handleMenuItem} />
         <MenuItem icon={faLock} text="Privacy Policy" onPress={handleMenuItem} />
         <MenuItem icon={faUsers} text="Invite Friends" onPress={handleMenuItem} />
+        <MenuItem icon={faHeart} text="Wishlist" onPress={handleMenuItem} />
         <MenuItem icon={faSignOutAlt} text="Log Out" onPress={handleMenuItem} />
       </View>
     </View>
@@ -157,10 +162,10 @@ const styles = StyleSheet.create({
   profileContainer: { alignItems: 'center', paddingTop: 100, position: 'relative' },
   profileImage: { width: 90, height: 90, borderRadius: 45 },
   editButton: { position: 'absolute', right: 140, bottom: 25, backgroundColor: '#000', padding: 6, borderRadius: 15 },
-  profileName: { 
-    marginTop: 10, 
-    fontSize: 20, 
-    fontWeight: 'bold', 
+  profileName: {
+    marginTop: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#333',
     marginBottom: 10,
   },

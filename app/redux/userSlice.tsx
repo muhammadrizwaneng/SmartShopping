@@ -9,7 +9,7 @@ interface AuthState {
   userInfo: any;
   error: string | null;
   isLoggedIn: boolean;
-  token:any
+  token: any
 }
 
 const initialState: AuthState = {
@@ -23,25 +23,21 @@ const initialState: AuthState = {
 // Async thunk for user login
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async ({ email, password}: any,) => {
-    console.log('Login payload:',  email, password);
+  async ({ email, password }: any,) => {
+    console.log('Login payload:', email, password);
     try {
-        const urlFor = ApiConfig.BASE_URL + ApiConfig.LOGIN;
-        const keyFor = {
-          email,
-          password,
-          // callFrom: 'mobile',
-          // origin: 'seebizCom',
-        };
+      const urlFor = ApiConfig.LOGIN;
+      const keyFor = {
+        email,
+        password,
+      };
 
-    // // console.log(keyFor);
-    // // SSo Login Call for user
-    const response = await CallServiceFor(urlFor, 'post', keyFor);
-    console.log('response:',  response?.status);
-    console.log('response:access_token',  response?.data?.access_token?.access_token);
-  
+      const response = await CallServiceFor(urlFor, 'post', keyFor);
+      console.log('response:', response?.status);
+      console.log('response:access_token', response?.data?.access_token);
+
       if (response.status == 200) {
-        const accessToken = response?.data?.access_token?.access_token;
+        const accessToken = response?.data?.access_token;
         AsyncStorage.setItem('token', accessToken);
         return response.data;
       } else {
@@ -49,7 +45,7 @@ export const loginUser = createAsyncThunk(
       }
     } catch (error: any) {
       console.error('Login error:', error);
-        return error.response.data;
+      return error.response.data;
     }
   }
 );
@@ -65,7 +61,7 @@ export const logoutUser: any = createAsyncThunk('SeeBiz/Logout', async () => {
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-   reducers: {
+  reducers: {
     setUserInfo: (state, action) => {
       state.userInfo = {
         ...state.userInfo,
@@ -97,22 +93,22 @@ const authSlice = createSlice({
 
     builder.addCase(loginUser.fulfilled, (state, action: any) => {
       console.log('Login Success:', action.payload);
-      console.log('action.payload.accessToken.accessToken Success:', action.payload.access_token?.access_token);
-      
+      console.log('action.payload.access_token Success:', action.payload.access_token);
+
       // Store user data and token in AsyncStorage
       const userData = {
         user: action.payload.user,
-        token: action.payload.access_token?.access_token,
+        token: action.payload.access_token,
         isLoggedIn: true
       };
-      
+
       AsyncStorage.setItem('userData', JSON.stringify(userData));
-      
+
       // Update state
       state.loading = false;
       state.isLoggedIn = true;
       state.userInfo = action.payload.user || {};
-      state.token = action.payload.access_token?.access_token;
+      state.token = action.payload.access_token;
     });
 
     builder.addCase(loginUser.rejected, (state, action: any) => {
@@ -137,4 +133,4 @@ const authSlice = createSlice({
 });
 
 export default authSlice.reducer;
-export const { setUserInfo,setSignupSuccess } = authSlice.actions;
+export const { setUserInfo, setSignupSuccess } = authSlice.actions;

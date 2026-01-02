@@ -8,6 +8,7 @@ import ApiConfig from '../config/api-config';
 
 interface ProductState {
   products: any[];
+  recentlyViewed: any[];
   loading: boolean;
   error: string | null;
   lastFetched: number | null;
@@ -15,6 +16,7 @@ interface ProductState {
 
 const initialState: ProductState = {
   products: [],
+  recentlyViewed: [],
   loading: false,
   error: null,
   lastFetched: null,
@@ -29,7 +31,7 @@ export const fetchProducts = createAsyncThunk(
   async (_, { getState }) => {
     const state: any = getState();
     const { lastFetched } = state.products;
-    
+
     // Check if we have a recent cache
     if (lastFetched && Date.now() - lastFetched < CACHE_DURATION) {
       const cachedProducts = await AsyncStorage.getItem('cachedProducts');
@@ -39,9 +41,9 @@ export const fetchProducts = createAsyncThunk(
     }
 
     try {
-      const url = ApiConfig.BASE_URL + ApiConfig.FETCH_LIST_PRODUCTS;
+      const url = ApiConfig.FETCH_LIST_PRODUCTS;
       const response = await CallServiceFor(url, 'get', {});
-      
+
       if (response.status === 200) {
         // Cache the products
         await AsyncStorage.setItem('cachedProducts', JSON.stringify(response.data));
@@ -62,7 +64,34 @@ export const fetchProducts = createAsyncThunk(
 const productSlice = createSlice({
   name: 'products',
   initialState,
-  reducers: {},
+  reducers: {
+    setProducts: (state, action) => {
+      state.products = action.payload;
+      state.lastFetched = Date.now();
+    },
+    addProduct: (state, action) => {
+      state.products = [action.payload, ...state.products];
+    },
+    updateProduct: (state, action) => {
+      const index = state.products.findIndex(p => p._id === action.payload._id);
+      if (index !== -1) {
+        state.products[index] = action.payload;
+      }
+    },
+    removeProduct: (state, action) => {
+      state.products = state.products.filter(p => p._id !== action.payload);
+    },
+    addToRecentlyViewed: (state, action) => {
+      const product = action.payload;
+      if (!product || !product._id) return;
+
+      // Remove if already exists to move to top
+      const filtered = state.recentlyViewed.filter(p => p._id !== product._id);
+
+      // Add to front of array
+      state.recentlyViewed = [product, ...filtered].slice(0, 10); // Limit to 10 items
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
@@ -84,4 +113,5 @@ const productSlice = createSlice({
   },
 });
 
+export const { setProducts, addProduct, updateProduct, removeProduct, addToRecentlyViewed } = productSlice.actions;
 export default productSlice.reducer;

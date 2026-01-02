@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,8 @@ import {
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faMobileAlt, faTshirt, faHome, faBasketballBall } from '@fortawesome/free-solid-svg-icons';
-import { faBarcode, faBell, faCameraAlt, faChartLine, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
+// Unused icons removed
+import { faBarcode, faBell, faCameraAlt, faChartLine, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
@@ -33,55 +33,55 @@ import { spacing } from '../../theme/spacing';
 import { colors } from '../../theme/color';
 
 const HomeScreen = () => {
-    
-  const dispatch = useDispatch();
-  const navigation = useNavigation();
+
+  const dispatch = useDispatch<any>();
+  const navigation = useNavigation<any>();
   const isFocused = useIsFocused();
-  
+
   // Get data from Redux store
   const { products, loading: productsLoading, error: productsError } = useSelector((state: any) => state.products);
   const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: any) => state.categories);
   const user = useSelector((state: any) => state.auth.userInfo);
 
-  
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-  
+
   const loading = productsLoading || categoriesLoading;
   const error = productsError || categoriesError;
 
   useEffect(() => {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
-  }, [dispatch, isFocused]);
+  }, [dispatch]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    dispatch(fetchProducts());
-    dispatch(fetchCategories());
+    // Force refresh by ignoring cache could be implemented, but for now we follow slice logic
+    await Promise.all([
+      dispatch(fetchProducts()),
+      dispatch(fetchCategories())
+    ]);
     setRefreshing(false);
   };
 
-  const renderProductItem = ({item}: any) => (
+  const renderProductItem = ({ item }: any) => (
     <ProductCard
       product={item}
-      onPress={() => navigation.navigate('ProductDetails', {product: item?._id})}
+      onPress={() => navigation.navigate('ProductDetails', { product: item?._id })}
     />
   );
 
-  const renderDealItem = ({item}: any) => (
+  const renderDealItem = ({ item }: any) => (
     <DealCard
       deal={item}
-      onPress={() => navigation.navigate('ProductDetails', {product: item?._id})}
-      // onPress={() => navigation.navigate('CreateProduct')}
+      onPress={() => navigation.navigate('ProductDetails', { product: item?._id })}
+    // onPress={() => navigation.navigate('CreateProduct')}
     />
   );
 
-  const renderCategoryItem = ({item}: any) => (
+  const renderCategoryItem = ({ item }: any) => (
     <CategoryCard
       category={item}
-      onPress={() => navigation.navigate('CategoryPageScreen', {categoryId: item.category_id})}
+      onPress={() => navigation.navigate('CategoryPageScreen', { categoryId: item.category_id })}
     />
   );
 
@@ -115,163 +115,151 @@ const HomeScreen = () => {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={false} 
-          onRefresh={onRefresh}
-          colors={[colors.primary]}
-          tintColor={colors.primary}
-        />
-      }>
-      
-      {/* Header */}
-      <LinearGradient
-        colors={[colors.primary, colors.primaryLight]}
-        style={styles.header}>
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.greeting}>Hello, {user?.username || 'User'}! <Text>👋</Text></Text>
-            {/* <Text style={styles.subtitle}>What are you shopping for today?</Text> */}
-          </View>
-
-              {/* {user?.userInfo?.profilePicture ? ( 
-          <Image
-              source={{ uri: "https://turtt-uat.s3.us-west-2.amazonaws.com/686b6bfaac2c81510f25f6b5/1756367759697-image-1756367744332.jpg" }} // Use profile picture URL
-              style={styles.avatar}
-            />
-          ) : ( */}
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarPlaceholderText}>EN</Text> {/* Example: initials */}
-            </View>
-           {/* )} */}
-          {/* <TouchableOpacity style={styles.notificationButton}>
-            <FontAwesomeIcon icon={faBell} size={14} color={colors.white} />
-            <View style={styles.notificationBadge} />
-          </TouchableOpacity> */}
-        </View>
-      </LinearGradient>
-      <View style={{backgroundColor:"#818CF8"}}>
-        <Animatable.View animation="fadeInUp" delay={200} style={styles.searchContainer}>
-            {/* This single TouchableOpacity now acts as the merged search bar/action container */}
-            <TouchableOpacity
-                style={styles.mergedSearchBar}
-                onPress={() => navigation.navigate('Search')}>
-
-                {/* Placeholder Text */}
-                <Text style={styles.searchPlaceholder}>Search products...</Text>
-
-                {/* Action Icons */}
-                <View style={styles.mergedSearchActions}>
-                    <TouchableOpacity
-                        style={styles.actionButtonInvisible} // Apply transparent style
-                        onPress={() => navigation.navigate('BarcodeScanner')}>
-                        <FontAwesomeIcon icon={faBarcode} size={20} color={colors.primary}/>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionButtonInvisible} // Apply transparent style
-                        onPress={() => navigation.navigate('CameraSearch')}>
-                        <FontAwesomeIcon icon={faCameraAlt} size={20} color={colors.primary}/>
-                    </TouchableOpacity>
-                </View>
-            </TouchableOpacity>
-        </Animatable.View>
-      </View>
-
-
-      {/* Categories */}
-      <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
-        <Text style={[styles.sectionTitle,{padding:20}]}>Categories</Text>
-        {loading ? (
-          <View style={{alignItems: 'center', justifyContent: 'center'}}>
-            <Text >Loading...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={categories}
-            renderItem={renderCategoryItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
-        )}
-      </Animatable.View>
+        }
+      >
 
-      {/* Deals & Discounts */}
-      <Animatable.View animation="fadeInUp" delay={600} style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🔥 Hot Deals</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={products}
-          renderItem={renderDealItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalList}
-        />
-      </Animatable.View>
-
-      {/* AI Recommendations */}
-      <Animatable.View animation="fadeInUp" delay={800} style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🤖 AI Recommendations</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={products?.slice(0, 5)} // Show first 5 products as recommendations
-          renderItem={renderProductItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalList}
-        />
-      </Animatable.View>
-
-      {/* AI Insights */}
-      <Animatable.View animation="fadeInUp" delay={1000} style={styles.section}>
-        <Text style={[styles.sectionTitle,{padding:16}]}>💡 Smart Insights</Text>
-        <View style={styles.insightCard}>
-            <FontAwesomeIcon icon={faChartLine} size={20} color={colors.success}/>
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Price Drop Alert</Text>
-            <Text style={styles.insightText}>
-              3 items in your wishlist have dropped in price by an average of 15%
-            </Text>
+        {/* Header Section */}
+        <LinearGradient
+          colors={[colors.primary, colors.gradientEnd]}
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.welcomeText}>Welcome back,</Text>
+              <Text style={styles.userName}>{user?.username || 'Shopper'} 👋</Text>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.iconButton}>
+                <FontAwesomeIcon icon={faBell} size={20} color={colors.white} />
+                <View style={styles.badge} />
+              </TouchableOpacity>
+              <View style={styles.avatarContainer}>
+                <Text style={styles.avatarText}>
+                  {(user?.username || 'U').substring(0, 1).toUpperCase()}
+                </Text>
+              </View>
+            </View>
           </View>
+
+          {/* Glass Search Bar */}
+          <Animatable.View animation="fadeIn" duration={800} style={styles.searchWrapper}>
+            <TouchableOpacity
+              style={styles.glassSearchBar}
+              onPress={() => navigation.navigate('Search')}
+              activeOpacity={0.9}
+            >
+              <View style={styles.searchInner}>
+                <FontAwesomeIcon icon={faSearch} size={18} color={colors.white} />
+                <Text style={styles.searchPlaceholderText}>What are you looking for?</Text>
+              </View>
+              <View style={styles.searchIcons}>
+                <TouchableOpacity onPress={() => navigation.navigate('BarcodeScanner')}>
+                  <FontAwesomeIcon icon={faBarcode} size={18} color={colors.white} />
+                </TouchableOpacity>
+                <View style={styles.divider} />
+                <TouchableOpacity onPress={() => navigation.navigate('CameraSearch')}>
+                  <FontAwesomeIcon icon={faCameraAlt} size={18} color={colors.white} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Animatable.View>
+        </LinearGradient>
+
+        <View style={styles.content}>
+          {/* Categories Section */}
+          <Animatable.View animation="fadeInUp" delay={200} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Shop by Category</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+                <Text style={styles.seeAll}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={categories}
+              renderItem={renderCategoryItem}
+              keyExtractor={(item) => item.category_id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </Animatable.View>
+
+          {/* Hot Deals */}
+          <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.titleWithIcon}>
+                <Text style={styles.emoji}>🔥</Text>
+                <Text style={styles.sectionTitle}>Flash Sale</Text>
+              </View>
+              <TouchableOpacity>
+                <Text style={styles.seeAll}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={products}
+              renderItem={renderDealItem}
+              keyExtractor={(item) => item._id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </Animatable.View>
+
+          {/* Smart Insights Glass Card */}
+          <Animatable.View animation="fadeInUp" delay={600} style={styles.insightSection}>
+            <LinearGradient
+              colors={['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.05)']}
+              style={styles.insightCard}
+            >
+              <View style={styles.insightHeader}>
+                <FontAwesomeIcon icon={faChartLine} size={20} color={colors.primary} />
+                <Text style={styles.insightMainTitle}>Smart Shopping Insights</Text>
+              </View>
+              <Text style={styles.insightDescription}>
+                Based on your behavior, electronics are 15% cheaper this week.
+              </Text>
+            </LinearGradient>
+          </Animatable.View>
+
+          {/* Recommendations */}
+          <Animatable.View animation="fadeInUp" delay={800} style={[styles.section, { marginBottom: 40 }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recommended For You</Text>
+            </View>
+            <FlatList
+              data={products?.slice(0, 6)}
+              renderItem={renderProductItem}
+              keyExtractor={(item) => item._id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </Animatable.View>
         </View>
-        
-        <View style={styles.insightCard}>
-            <FontAwesomeIcon icon={faTimes} size={20} color={colors.warning}/>
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Best Time to Buy</Text>
-            <Text style={styles.insightText}>
-              Electronics typically have better deals on weekends
-            </Text>
-          </View>
-        </View>
-      </Animatable.View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background
   },
   refreshIndicator: {
     paddingTop: 20,
@@ -302,168 +290,165 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium as any,
   },
-  header: {
-    paddingTop: 50,
-    paddingBottom: spacing.lg,
-    paddingHorizontal: 16,
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    // paddingTop: spacing.xl,
+    paddingHorizontal: 20,
+    marginBottom: 25,
   },
-  greeting: {
-    fontSize: typography.fontSize.xl,
+  welcomeText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: typography.fontWeight.medium as any,
+  },
+  userName: {
+    fontSize: 22,
+    color: colors.white,
     fontWeight: typography.fontWeight.bold as any,
-    color: colors.white,
   },
-  subtitle: {
-    fontSize: typography.fontSize.base,
-    color: colors.white,
-    opacity: 0.9,
-    marginTop: 4,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  notificationButton: {
-    position: 'relative',
-    padding: spacing.sm,
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  notificationBadge: {
+  badge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 10,
+    right: 10,
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.error,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
   },
-  searchContainer: {
-    flexDirection: 'row',
+  avatarContainer: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  avatarText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  searchWrapper: {
     paddingHorizontal: 20,
-    marginTop: 10,
-    marginBottom: spacing.lg,
   },
-  searchBar: {
-    flex: 1,
+  glassSearchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: spacing.borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    // marginRight: spacing.sm,
-    ...spacing.shadow.md
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  searchPlaceholder: {
-    marginLeft: spacing.sm,
-    fontSize: typography.fontSize.base,
-    color: colors.gray,
-  },
-  searchActions: {
+  searchInner: {
     flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  actionButton: {
-    backgroundColor: colors.white,
-    borderRadius: spacing.borderRadius.lg,
-    padding: spacing.md,
-    marginLeft: spacing.sm,
-    ...spacing.shadow.md,
+  searchPlaceholderText: {
+    color: colors.white,
+    marginLeft: 10,
+    fontSize: 15,
+    opacity: 0.9,
+  },
+  searchIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  divider: {
+    width: 1,
+    height: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: 10,
+  },
+  content: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginTop: 25,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: spacing.md,
+    marginBottom: 15,
+  },
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  emoji: {
+    fontSize: 20,
+    marginRight: 8,
   },
   sectionTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold as any,
+    fontSize: 18,
+    fontWeight: typography.fontWeight.bold as any,
     color: colors.textPrimary,
   },
   seeAll: {
-    fontSize: typography.fontSize.sm,
+    fontSize: 14,
     color: colors.primary,
-    fontWeight: typography.fontWeight.medium as any,
+    fontWeight: typography.fontWeight.semibold as any,
   },
   horizontalList: {
     paddingLeft: 20,
+    paddingRight: 10,
+  },
+  insightSection: {
+    paddingHorizontal: 20,
+    marginTop: 25,
   },
   insightCard: {
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(79, 70, 229, 0.1)',
+  },
+  insightHeader: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderRadius: spacing.borderRadius.lg,
-    padding: spacing.md,
-    marginHorizontal: 20,
-    marginBottom: spacing.sm,
-    ...spacing.shadow.sm,
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  insightContent: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  insightTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold as any,
+  insightMainTitle: {
+    fontSize: 16,
+    fontWeight: typography.fontWeight.bold as any,
     color: colors.textPrimary,
-    marginBottom: 4,
+    marginLeft: 10,
   },
-  insightText: {
-    fontSize: typography.fontSize.sm,
+  insightDescription: {
+    fontSize: 14,
     color: colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 20,
   },
-    mergedSearchActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-    mergedSearchBar: {
-    flex: 1, // Takes up the full width
-    flexDirection: 'row',
-    justifyContent: 'space-between', // Pushes placeholder left, icons right
-    alignItems: 'center',
-    backgroundColor: colors.white, // The white background for the whole bar
-    borderRadius: spacing.borderRadius.lg, // Large rounding
-    paddingHorizontal: spacing.md, // Horizontal padding for inside the bar
-    paddingVertical: spacing.md, 
-    ...spacing.shadow.md // Shadow for the entire bar
-  },
-    actionButtonInvisible: {
-    // Removed all styling that creates a separate button look (white background, shadow, padding)
-    paddingHorizontal: spacing.sm, // Add a small amount of space between icons
-    paddingVertical: 0,
-    marginLeft: spacing.sm, // Add space between placeholder and first icon, and between icons
-  },
-
-   avatar: {
-    width: 48, // Diameter of the circle
-    height: 48, // Diameter of the circle
-    borderRadius: 24, // Half of width/height for a perfect circle
-    backgroundColor: colors.lightGray, // Fallback background if image fails
-    borderWidth: 2, // Optional: white border
-    borderColor: colors.white, // Optional: white border
-    marginLeft: spacing.md, // Spacing from the text
-  },
-  // Optional: Placeholder for when there's no profile picture
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.accent, // Different background for placeholder
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: spacing.md,
-  },
-  avatarPlaceholderText: {
-    color: colors.white,
-    fontSize: typography.fontSize.lg,
-    fontWeight: 'bold' as any,
-  },
-
 });
 
 export default HomeScreen;

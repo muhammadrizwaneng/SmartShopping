@@ -29,7 +29,7 @@ export const fetchCategories = createAsyncThunk(
   async (_, { getState }) => {
     const state: any = getState();
     const { lastFetched } = state.categories;
-    
+
     // Check if we have a recent cache
     if (lastFetched && Date.now() - lastFetched < CACHE_DURATION) {
       const cachedCategories = await AsyncStorage.getItem('cachedCategories');
@@ -39,9 +39,9 @@ export const fetchCategories = createAsyncThunk(
     }
 
     try {
-      const url = ApiConfig.BASE_URL + ApiConfig.FETCH_CATEGORIES_WITH_PRODUCT_COUNTS;
+      const url = ApiConfig.FETCH_CATEGORIES_WITH_PRODUCT_COUNTS;
       const response = await CallServiceFor(url, 'get', {});
-      
+
       if (response.status === 200) {
         // Cache the categories
         await AsyncStorage.setItem('cachedCategories', JSON.stringify(response.data));

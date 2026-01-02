@@ -4,8 +4,9 @@ import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faSearch, faList, faUser, faMagnifyingGlass,faShoppingCart } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSearch, faList, faUser, faMagnifyingGlass, faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import { faHome as faHomeOutline, faListAlt, faUser as faUserOutline } from '@fortawesome/free-regular-svg-icons';
+import { faMagnifyingGlass as faSearchOutline } from '@fortawesome/free-solid-svg-icons';
 
 // import SearchScreen from '../screens/main/SearchScreen';
 // import ShoppingListScreen from '../screens/main/ShoppingListScreen';
@@ -25,99 +26,133 @@ import CategoriesScreen from '../screens/main/CategoriesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CartScreen from '../screens/main/CartScreen';
 import UserDashboardScreen from '../screens/main/UserDashboard';
+import SearchScreen from '../screens/main/SearchScreen';
+import CheckoutScreen from '../screens/main/CheckoutScreen';
+import WishlistScreen from '../screens/main/WishlistScreen';
+import ProductOrderScreen from '../screens/ProductOrderScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const HomeStack = () => (
-  
+
   <Stack.Navigator>
-    <Stack.Screen 
-      name="UserDashboard" 
+    <Stack.Screen
+      name="UserDashboard"
       component={UserDashboardScreen}
-      options={{headerShown: false}}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen 
-      name="HomeMain" 
-      component={HomeScreen} 
-      options={{headerShown: false}}
+    <Stack.Screen
+      name="HomeMain"
+      component={HomeScreen}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen 
-      name="ProductDetails" 
+    <Stack.Screen
+      name="ProductDetails"
       component={ProductDetailScreen}
       options={{
         headerTitle: 'Product Details',
-        headerStyle: {backgroundColor: colors.primary},
+        headerStyle: { backgroundColor: colors.primary },
         headerTintColor: colors.white,
       }}
     />
-    <Stack.Screen 
-      name="CreateProduct" 
+    <Stack.Screen
+      name="CreateProduct"
       component={CreateProductScreen}
       options={{
         headerTitle: 'Product Details',
-        headerStyle: {backgroundColor: colors.primary},
+        headerStyle: { backgroundColor: colors.primary },
         headerTintColor: colors.white,
       }}
     />
 
     <Stack.Screen
-      name="CategoryPageScreen" 
+      name="CategoryPageScreen"
       component={CategoryPageScreen}
       options={{
         headerTitle: 'Category Products',
-        headerStyle: {backgroundColor: colors.primary},
+        headerStyle: { backgroundColor: colors.primary },
         headerTintColor: colors.white,
       }}
     />
-    
+
+    <Stack.Screen
+      name="Search"
+      component={SearchScreen}
+      options={{ headerShown: false }}
+    />
+
+    <Stack.Screen
+      name="Checkout"
+      component={CheckoutScreen}
+      options={{ headerShown: false }}
+    />
 
   </Stack.Navigator>
 );
 
 const SearchStack = () => (
   <Stack.Navigator>
-    <Stack.Screen 
-      name="Categories" 
-      component={CategoriesScreen} 
-      options={{headerShown: false}}
+    <Stack.Screen
+      name="Categories"
+      component={CategoriesScreen}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen 
-      name="categoryDetail" 
+    <Stack.Screen
+      name="categoryDetail"
       component={CategoryPageScreen}
       options={{
         headerTitle: 'Category Details',
-        headerStyle: {backgroundColor: colors.primary},
-        headerTintColor: colors.white,
-      }}
-    /> 
-    {/* <Stack.Screen 
-      name="BarcodeScanner" 
-      component={BarcodeScannerScreen}
-      options={{
-        headerTitle: 'Scan Barcode',
-        headerStyle: {backgroundColor: colors.dark},
+        headerStyle: { backgroundColor: colors.primary },
         headerTintColor: colors.white,
       }}
     />
-    <Stack.Screen 
-      name="CameraSearch" 
-      component={CameraSearchScreen}
+    <Stack.Screen
+      name="ProductDetails"
+      component={ProductDetailScreen}
       options={{
-        headerTitle: 'Camera Search',
-        headerStyle: {backgroundColor: colors.dark},
+        headerTitle: 'Product Details',
+        headerStyle: { backgroundColor: colors.primary },
         headerTintColor: colors.white,
       }}
     />
-    */}
+  </Stack.Navigator>
+);
+
+// ProductOrderScreen already imported if added to the top, but let's just clean this block
+const ProfileStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="ProfileMain"
+      component={ProfileScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Wishlist"
+      component={WishlistScreen}
+      options={{
+        headerTitle: 'My Wishlist',
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.white,
+      }}
+    />
+    <Stack.Screen
+      name="ProductOrderScreen"
+      component={ProductOrderScreen}
+      options={{
+        headerTitle: 'My Orders',
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.white,
+      }}
+    />
   </Stack.Navigator>
 );
 
 const MainNavigator = () => {
   return (
     <Tab.Navigator
-      screenOptions={({route}) => ({
-  
+      screenOptions={({ route }) => ({
+
         tabBarIcon: ({ focused, color, size }) => {
           let icon;
 
@@ -152,21 +187,21 @@ const MainNavigator = () => {
         },
         headerShown: false,
       })}>
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeStack}
-        options={{tabBarLabel: 'Home'}}
+        options={{ tabBarLabel: 'Home' }}
       />
-      <Tab.Screen 
-        name="Search" 
+      <Tab.Screen
+        name="Search"
         component={SearchStack}
         options={{
           tabBarLabel: 'Categories',
           tabBarIcon: ({ focused, color, size }) => (
-            <FontAwesomeIcon 
-              icon={focused ? faSearch : faMagnifyingGlass} 
-              size={size} 
-              color={color} 
+            <FontAwesomeIcon
+              icon={focused ? faSearch : faMagnifyingGlass}
+              size={size}
+              color={color}
             />
           ),
         }}
@@ -178,10 +213,10 @@ const MainNavigator = () => {
           tabBarLabel: 'Cart',
           tabBarIcon: ({ focused, color, size }) => (
             <View style={{ position: 'relative' }}>
-              <FontAwesomeIcon 
-                icon={faShoppingCart} 
-                size={size} 
-                color={color} 
+              <FontAwesomeIcon
+                icon={faShoppingCart}
+                size={size}
+                color={color}
               />
               <View style={{
                 position: 'absolute',
@@ -204,14 +239,14 @@ const MainNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarLabel: 'Account',
           tabBarIcon: ({ focused, color, size }) => (
-            <FontAwesomeIcon 
-              icon={focused ? faUser : faUserOutline} 
-              size={size} 
-              color={color} 
+            <FontAwesomeIcon
+              icon={focused ? faUser : faUserOutline}
+              size={size}
+              color={color}
             />
           ),
         }}

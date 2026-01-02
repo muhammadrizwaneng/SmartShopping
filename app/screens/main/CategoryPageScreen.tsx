@@ -8,9 +8,9 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import axios from "axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ApiConfig from "../../config/api-config";
+import { CallServiceFor } from "../../services/call_services_for";
 
 interface Product {
   _id: string;
@@ -31,7 +31,7 @@ interface Product {
 }
 
 export default function CategoryPageScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { categoryId } = route.params;
 
@@ -41,14 +41,13 @@ export default function CategoryPageScreen() {
 
   useEffect(() => {
     let mount = true;
-    const c = new AbortController();
 
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${ApiConfig.BASE_URL}products/get-products-by-category/${categoryId}`, {
-          signal: c.signal,
-        });
+        // Using string directly for dynamic path segment if not in ApiConfig, 
+        // but it's better to use CallServiceFor for Base URL consistency.
+        const res = await CallServiceFor(`products/get-products-by-category/${categoryId}`, 'get', {});
 
         if (!mount) return;
 
@@ -59,14 +58,12 @@ export default function CategoryPageScreen() {
         } else {
           const nameFromUrl = categoryId
             .split("-")
-            .map(w => w[0]?.toUpperCase() + w.slice(1))
+            .map((w: string) => w[0]?.toUpperCase() + w.slice(1))
             .join(" ");
           setCategoryName(nameFromUrl);
         }
       } catch (err) {
-        if (!axios.isCancel(err)) {
-        //   toast({ title: "Error", description: "Failed to load products", variant: "destructive" });
-        }
+        console.error("Fetch products by category error:", err);
       } finally {
         if (mount) setLoading(false);
       }
@@ -76,7 +73,6 @@ export default function CategoryPageScreen() {
 
     return () => {
       mount = false;
-      c.abort();
     };
   }, [categoryId]);
 
@@ -141,7 +137,7 @@ export default function CategoryPageScreen() {
       <View style={styles.center}>
         <Text>No products found</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text>Back</Text>
+          <Text>Back</Text>
         </TouchableOpacity>
       </View>
     );

@@ -1,8 +1,8 @@
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, Dimensions, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { loginUser, setSignupSuccess } from '../../redux/userSlice';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -33,35 +33,42 @@ const slides = [
   }
 ];
 
-const SignUp_Step2 = (props) => {
-    console.log('props:', props);
+const SignUp_Step2 = (props: any) => {
+  console.log('props:', props);
   const [activeIndex, setActiveIndex] = useState(0);
-  const  user  = props?.route?.params?.user;
+  const user = props?.route?.params?.user;
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
-  const handleScroll = (event) => {
+  const handleScroll = (event: any) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / width);
     setActiveIndex(index);
   };
 
 
-    const handleStart = () => {
+  const handleStart = () => {
+    const token = user?.access_token || user?.token;
     dispatch(setSignupSuccess({
-        user: user,
-        token: user.access_token.access_token,   // your backend sends access_token
+      user: user?.user || user,
+      token: token,
     }));
 
-    // navigation.replace("HomeScreen"); // redirect to dashboard
-    };
+    // Reset navigation to Main
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      })
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
 
         <View style={styles.bgMain}>
-          <Image source={require('../../assets/images/mask_group_6.png')} style={styles.bgImage}/>
+          <Image source={require('../../assets/images/mask_group_6.png')} style={styles.bgImage} />
         </View>
 
         <ScrollView
@@ -71,23 +78,23 @@ const SignUp_Step2 = (props) => {
           onScroll={handleScroll}
           scrollEventThrottle={16}
         >
-            {slides.map((item, i) => (
+          {slides.map((item, i) => (
             <View key={item.id} style={styles.cardWrapper}>
-                <View style={styles.card}>
+              <View style={styles.card}>
                 <View style={styles.imageBox}>
-                    <Image source={item.img} style={styles.mainImage}/>
+                  <Image source={item.img} style={styles.mainImage} />
                 </View>
 
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.desc}>{item.desc}</Text>
                 {i === slides.length - 1 && (
-                    <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
+                  <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
                     <Text style={styles.startBtnText}>Let's Start</Text>
-                    </TouchableOpacity>
+                  </TouchableOpacity>
                 )}
-                </View>
+              </View>
             </View>
-            ))}
+          ))}
         </ScrollView>
 
         {/* Pagination */}
@@ -165,18 +172,18 @@ const styles = StyleSheet.create({
   activeDot: { backgroundColor: '#0054FF', width: 25 },
   inactiveDot: { backgroundColor: '#E5E9F0' },
   startBtn: {
-  backgroundColor: '#0054FF',
-  paddingVertical: 12,
-  paddingHorizontal: 50,
-  borderRadius: 15,
-  marginTop: 20,
-},
-startBtnText: {
-  color: '#fff',
-  fontSize: 22,
-  fontWeight: '600',
-  fontFamily: 'nunito-sans.light',
-},
+    backgroundColor: '#0054FF',
+    paddingVertical: 12,
+    paddingHorizontal: 50,
+    borderRadius: 15,
+    marginTop: 20,
+  },
+  startBtnText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '600',
+    fontFamily: 'nunito-sans.light',
+  },
 });
 
 export default SignUp_Step2;

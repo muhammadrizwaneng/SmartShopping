@@ -20,20 +20,22 @@ import { faEnvelope, faEye, faEyeSlash, faLock, faPerson } from '@fortawesome/fr
 import CountryPicker from 'react-native-country-picker-modal';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApiConfig from '../../config/api-config';
+import { CallServiceFor } from '../../services/call_services_for';
 
-const getEmojiFlag = (countryCode) => {
+const getEmojiFlag = (countryCode: string) => {
   const flag = countryCode
     .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397));
+    .replace(/./g, (char: string) => String.fromCodePoint(char.charCodeAt(0) + 127397));
   return flag;
 };
 
-const getEmojiFlagByCca2 = (countryCode) => {
+const getEmojiFlagByCca2 = (countryCode: string) => {
   const codePoints = countryCode
     .toUpperCase()
     .split('')
-    .map((char) => 0x1f1e6 - 65 + char.charCodeAt(0));
+    .map((char: string) => 0x1f1e6 - 65 + char.charCodeAt(0));
   const flag = String.fromCodePoint(...codePoints);
   console.log('Flag emoji:', flag);
   return flag;
@@ -42,8 +44,8 @@ const getEmojiFlagByCca2 = (countryCode) => {
 const SignupScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState<any>('');
+  const [confirmPassword, setConfirmPassword] = useState<any>('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +56,7 @@ const SignupScreen = ({ navigation }: any) => {
     callingCode: '1',
     flag: getEmojiFlag('US'),
   });
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<any>(null);
 
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -85,30 +87,37 @@ const SignupScreen = ({ navigation }: any) => {
       "role": "user",
     }
     console.log('payload:', payload);
-    // navigation.navigate('signupStep2');
-    try {
-        const response = await axios.post(
-          // "https://your-backend-url.com/api/signup",
-          `${ApiConfig.BASE_URL}${ApiConfig.SIGNUP}`,
-          payload
-        );
 
-        console.log(response);
-        Alert.alert("Success", response.data.message || "Signup Successful!");
-        if(response.status == 200) {
-          const userResponse = response.data
-          navigation.navigate('signupStep2',{user:userResponse});
+    try {
+      setIsLoading(true);
+      const response = await CallServiceFor(ApiConfig.SIGNUP, 'post', payload);
+
+      console.log(response);
+      if (response.status == 200 || response.status == 201) {
+        Alert.alert("Success", "Signup Successful!");
+        const userResponse = response.data
+        // The API returns access_token on signup too as per doc
+        if (userResponse.access_token) {
+          await AsyncStorage.setItem('token', userResponse.access_token);
+          await AsyncStorage.setItem('userData', JSON.stringify({
+            user: userResponse,
+            token: userResponse.access_token,
+            isLoggedIn: true
+          }));
         }
-        // Navigate to login screen
-      } catch (error) {
-        console.log(error);
-        Alert.alert("Error", error.response?.data?.message || "Signup failed");
+        navigation.navigate('signupStep2', { user: userResponse });
+      } else {
+        Alert.alert("Error", response.data?.message || "Signup failed");
       }
-      
-    // Handle the signup process here, such as sending data to the backend
+    } catch (error: any) {
+      console.log(error);
+      Alert.alert("Error", error.response?.data?.message || "Signup failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleCountrySelect = (country) => {
+  const handleCountrySelect = (country: any) => {
     if (country.callingCode[0]) {
       setCountry({
         code: country.cca2,
@@ -129,24 +138,24 @@ const SignupScreen = ({ navigation }: any) => {
     setPhoneNumber(filteredText);
   };
 
-const handleImagePick = () => {
-  ImageCropPicker.openPicker({
-    width: 300,
-    height: 300,
-    cropping: true,
-    includeBase64: true,   // ✅ MUST ADD THIS
-  })
-    .then((image) => {
-      console.log('Selected image:', image);
-
-      const base64Img = `data:${image.mime};base64,${image.data}`;
-
-      setProfileImage(base64Img); // ✅ send base64 to backend
+  const handleImagePick = () => {
+    ImageCropPicker.openPicker({
+      width: 300,
+      height: 300,
+      cropping: true,
+      includeBase64: true,   // ✅ MUST ADD THIS
     })
-    .catch((error) => {
-      console.error('Image selection error:', error);
-    });
-};
+      .then((image: any) => {
+        console.log('Selected image:', image);
+
+        const base64Img = `data:${image.mime};base64,${image.data}`;
+
+        setProfileImage(base64Img); // ✅ send base64 to backend
+      })
+      .catch((error) => {
+        console.error('Image selection error:', error);
+      });
+  };
 
 
   return (
@@ -235,7 +244,7 @@ const handleImagePick = () => {
                   withFilter
                   visible={showCountryPicker}
                   onSelect={handleCountrySelect}
-                  countryCode={country.code || country.countryShortName}
+                  countryCode={country.code as any}
                   onClose={() => setShowCountryPicker(false)}
                 />
               </View>
@@ -269,9 +278,9 @@ const handleImagePick = () => {
             </Text>
           </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('LandingScreen')}>
-              <Text style={styles.loginLink}>Cancel</Text>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('LandingScreen')}>
+            <Text style={styles.loginLink}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -317,8 +326,8 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     marginLeft: 50,
-    borderRadius: 60, 
-    overflow: 'hidden' ,
+    borderRadius: 60,
+    overflow: 'hidden',
     marginBottom: 30,
   },
   uploadImage: {

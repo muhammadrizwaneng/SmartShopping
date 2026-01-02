@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,14 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faStar, faTruck} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faStar, faTruck } from '@fortawesome/free-solid-svg-icons';
 import ApiConfig from '../../config/api-config';
 import axios from 'axios';
-import {useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { addToCart, CartItem } from '../../redux/cartSlice';
+import { addToRecentlyViewed } from '../../redux/productSlice';
 
 interface ProductImage {
   id: string;
@@ -54,10 +55,9 @@ interface ProductDetailScreenProps {
   };
 }
 
-const ProductDetailScreen = (props) => {
+const ProductDetailScreen = (props: any) => {
 
-  const [productData, setProductData] = useState(null);
-  // const [productData, setProductData] = useState<ProductData | null>(null);
+  const [productData, setProductData] = useState<any>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [activeMainImage, setActiveMainImage] = useState<string | null>(null);
   const isFocused = useIsFocused();
@@ -71,9 +71,10 @@ const ProductDetailScreen = (props) => {
       if (response.status === 200) {
         setProductData(response.data);
         setActiveMainImage(response.data?.main_image_url);
+        dispatch(addToRecentlyViewed(response.data));
         return;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(
         'Failed to fetch product details:',
         error.response?.data || error.message,
@@ -83,12 +84,16 @@ const ProductDetailScreen = (props) => {
   };
 
   useEffect(() => {
-    if(props?.route?.params?.product != "" && props?.route?.params?.product!= null){
+    if (props?.route?.params?.product != "" && props?.route?.params?.product != null) {
 
       fetchProductDetails(props?.route?.params?.product);
     }
   }, [isFocused]);
 
+
+  if (!productData) {
+    return <Text style={{ padding: 20 }}>Loading product details...</Text>;
+  }
 
   const getDisplayPrice = () => {
     let price;
@@ -101,8 +106,6 @@ const ProductDetailScreen = (props) => {
   };
 
   const getDisplayStock = (): number => {
-    if (!productData) return 0;
-    
     if (productData.has_variants && productData.variants?.length > 0) {
       return productData.variants[selectedVariantIndex]?.stock || 0;
     }
@@ -112,14 +115,10 @@ const ProductDetailScreen = (props) => {
   const displayPrice = getDisplayPrice();
   const displayStock = getDisplayStock();
   const isInStock = displayStock > 0;
-  
+
   const handleVariantSelect = (index: number) => {
     setSelectedVariantIndex(index);
   };
-  
-  if (!productData) {
-    return <Text style={{padding: 20}}>Loading product details...</Text>;
-  }
 
   const handleGalleryImageSelect = (url: string) => {
     setActiveMainImage(url);
@@ -132,7 +131,7 @@ const ProductDetailScreen = (props) => {
     if (productData.has_variants && productData.variants?.length > 0) {
       const selectedVariant = productData.variants[selectedVariantIndex];
       if (!selectedVariant) return;
-      
+
       const cartItem: Omit<CartItem, 'quantity'> = {
         id: selectedVariant.id,
         productId: productData.id,
@@ -142,7 +141,7 @@ const ProductDetailScreen = (props) => {
         variantId: selectedVariant.id,
         variantName: selectedVariant.name,
       };
-      
+
       dispatch(addToCart(cartItem));
       Alert.alert('Success', `${productData.name} (${selectedVariant.name || 'Variant'}) added to cart!`);
     } else {
@@ -154,7 +153,7 @@ const ProductDetailScreen = (props) => {
         price: productData.price,
         image: productData.main_image_url,
       };
-      
+
       dispatch(addToCart(cartItem));
       Alert.alert('Success', `${productData.name} added to cart!`);
     }
@@ -163,9 +162,9 @@ const ProductDetailScreen = (props) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.topSectionBackground}>
-        <View style={{height: 250, marginBottom: 20}}>
+        <View style={{ height: 250, marginBottom: 20 }}>
           <Image
-            source={{uri: activeMainImage}}
+            source={{ uri: activeMainImage || '' }}
             style={styles.mainImage}
             resizeMode="contain"
           />
@@ -187,7 +186,7 @@ const ProductDetailScreen = (props) => {
                     isSelected && styles.thumbnailWrapperSelected,
                   ]}>
                   <Image
-                    source={{uri: url}}
+                    source={{ uri: url }}
                     style={styles.thumbnailImage}
                     resizeMode="contain"
                   />
@@ -196,7 +195,7 @@ const ProductDetailScreen = (props) => {
             })}
         </ScrollView>
       </View>
-      
+
       <View style={styles.infoContainer}>
         <Text style={styles.productName}>{productData?.name}</Text>
         <Text style={styles.brand}>{productData?.brand}</Text>
@@ -206,36 +205,36 @@ const ProductDetailScreen = (props) => {
 
         {/* Tags/Chips */}
         <View style={styles.tagsContainer}>
-          {productData?.tags?.map((tag, index) => (
+          {productData?.tags?.map((tag: any, index: number) => (
             <Text key={index} style={styles.tagChip}>
               {tag}
             </Text>
           ))}
         </View>
-        
+
         {/* Price Row */}
         <View style={styles.priceRow}>
           <View style={styles.priceTextGroup}>
             <Text style={styles.discountPrice}>
               {displayPrice ? `$${displayPrice.toFixed(2)}` : 'Price Varies'}
             </Text>
-            
+
             {productData?.has_variants && productData.variants[selectedVariantIndex]?.discountprice != null && (
               <Text style={styles.basePrice}>
-                {productData?.has_variants 
-                  ? `$${productData.variants[selectedVariantIndex]?.price.toFixed(2)}` 
+                {productData?.has_variants
+                  ? `$${productData.variants[selectedVariantIndex]?.price.toFixed(2)}`
                   : `$${productData?.price.toFixed(2)}`
                 }
               </Text>
             )}
 
-            {productData?.price && productData?.price > displayPrice  && (
+            {productData?.price && productData?.price > displayPrice && (
               <Text style={styles.basePrice}>
                 ${productData?.price.toFixed(2)}
               </Text>
             )}
           </View>
-          
+
           {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent != null) || (productData?.discount_percent)) && (
             <View style={styles.discountChip}>
               <Text style={styles.discountText}>
@@ -253,7 +252,7 @@ const ProductDetailScreen = (props) => {
               color={
                 i < Math.floor(productData?.rating || 0) ? '#fbbf24' : '#ccc'
               }
-              style={{marginRight: 2}}
+              style={{ marginRight: 2 }}
             />
           ))}
           <Text style={styles.reviewsText}>
@@ -265,42 +264,41 @@ const ProductDetailScreen = (props) => {
           <View>
             <Text style={styles.variantTitle}>Variants</Text>
             <View style={styles.variantsContainer}>
-              {productData?.variants.map((v, index) => (
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              {productData?.variants.map((v: any, index: number) => (
+                <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <TouchableOpacity
-                    key={index}
                     onPress={() => handleVariantSelect(index)}
                     style={[
                       styles.variantChip,
                       index === selectedVariantIndex &&
-                        styles.variantChipSelected,
+                      styles.variantChipSelected,
                     ]}>
                     <Text
                       style={[
                         styles.variantText,
                         index === selectedVariantIndex &&
-                          styles.variantTextSelected,
+                        styles.variantTextSelected,
                       ]}>
-                      {v.name} 
+                      {v.name}
                     </Text>
                   </TouchableOpacity>
-                  <View  style={[
-                      styles.variantChip,
-                      index === selectedVariantIndex &&
-                        styles.variantChipSelected,
-                    ]}>
+                  <View style={[
+                    styles.variantChip,
+                    index === selectedVariantIndex &&
+                    styles.variantChipSelected,
+                  ]}>
                     <Text style={[
-                        styles.variantText,
-                        index === selectedVariantIndex &&
-                          styles.variantTextSelected,
-                      ]}> ({v.stock} left) </Text> 
+                      styles.variantText,
+                      index === selectedVariantIndex &&
+                      styles.variantTextSelected,
+                    ]}> ({v.stock} left) </Text>
                   </View>
                 </View>
               ))}
             </View>
           </View>
         )}
-        
+
         <View style={[styles.sizeStockRow]}>
           <View style={styles.stockContainer}>
             <Text style={styles.stockText}>
@@ -317,24 +315,24 @@ const ProductDetailScreen = (props) => {
         {/* Features */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Features</Text>
-          {productData?.features?.map((f, index) => (
+          {productData?.features?.map((f: any, index: number) => (
             <View key={index} style={styles.featureRow}>
               <Text style={styles.featureLabel}>{f.label}</Text>
               <Text style={styles.featureValue}>{f.value}</Text>
             </View>
           ))}
         </View>
-        
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Delivery Options</Text>
           <View style={styles.deliveryRow}>
-            {productData?.delivery_options?.map((option, index) => (
+            {productData?.delivery_options?.map((option: any, index: number) => (
               <View key={index} style={styles.deliveryChip}>
                 <FontAwesomeIcon
                   icon={faTruck}
                   size={14}
                   color="#6366F1"
-                  style={{marginRight: 5}}
+                  style={{ marginRight: 5 }}
                 />
                 <Text style={styles.deliveryText}>{option}</Text>
               </View>
@@ -342,7 +340,7 @@ const ProductDetailScreen = (props) => {
           </View>
         </View>
       </View>
-      
+
       <View style={styles.footer}>
         <TouchableOpacity style={styles.cartButton} onPress={handleAddToCart}>
           <Text style={styles.cartButtonText}>Add to Cart</Text>
@@ -470,13 +468,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     // flex: 1,
-    alignSelf:"flex-start"
+    alignSelf: "flex-start"
   },
   addDiscountButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-    alignSelf:"flex-start"
+    alignSelf: "flex-start"
   },
   discountStatusRow: {
     marginBottom: 20,
@@ -551,8 +549,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 4,
   },
-  section: {marginTop: 20},
-  sectionTitle: {fontSize: 18, fontWeight: '600', marginBottom: 10},
+  section: { marginTop: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
   featureRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -560,9 +558,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
     paddingVertical: 8,
   },
-  featureLabel: {fontSize: 14, color: '#666'},
-  featureValue: {fontSize: 14, fontWeight: '500', color: '#111'},
-  deliveryRow: {flexDirection: 'row', flexWrap: 'wrap', marginTop: 6},
+  featureLabel: { fontSize: 14, color: '#666' },
+  featureValue: { fontSize: 14, fontWeight: '500', color: '#111' },
+  deliveryRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
   deliveryChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -573,7 +571,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginTop: 6,
   },
-  deliveryText: {color: '#6366F1', fontSize: 13, fontWeight: '500'},
+  deliveryText: { color: '#6366F1', fontSize: 13, fontWeight: '500' },
   footer: {
     padding: 16,
     borderTopWidth: 1,
@@ -586,7 +584,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  cartButtonText: {color: '#fff', fontSize: 16, fontWeight: '600'},
+  cartButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   thumbnailWrapperSelected: {
     borderColor: '#ef8402ff',
     borderWidth: 3,

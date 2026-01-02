@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,20 +8,28 @@ import {
   StyleSheet,
   Alert,
   Switch,
+  Image,
+  Dimensions,
 } from 'react-native';
-import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faPlus,
   faTrashAlt,
   faChevronDown,
+  faCameraAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import {useIsFocused} from '@react-navigation/native';
-import {useForm, useFieldArray, Controller} from 'react-hook-form';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import axios from 'axios';
 import RBSheet from 'react-native-raw-bottom-sheet';
+import ImagePicker from 'react-native-image-crop-picker';
 import ApiConfig from '../../config/api-config';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import AppState from '../../models/reducers';
+import { spacing } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
+import { colors } from '../../theme/color';
+import { addProduct } from '../../redux/productSlice';
 
 // Define the initial shape of your form data
 const defaultProductData = {
@@ -38,17 +46,20 @@ const defaultProductData = {
   has_variants: false,
   variants: [],
   delivery_options: [],
-  features: [{label: '', value: ''}],
-  price: '', 
+  features: [{ label: '', value: '' }],
+  price: '',
   stock: '',
 };
 
+const { width: screenWidth } = Dimensions.get('window');
+
 const CreateProductScreen = () => {
+  const navigation = useNavigation<any>();
   const user = useSelector((state: AppState) => state.user);
-   
-  const [categoryLists, setCategoryList] = useState([]);
+  const dispatch = useDispatch<any>();
+  const [categoryLists, setCategoryList] = useState<any[]>([]);
   const isFocused = useIsFocused();
-  const categorySheetRef = useRef(null);
+  const categorySheetRef = useRef<any>(null);
 
   // --- react-hook-form setup ---
   const {
@@ -58,8 +69,8 @@ const CreateProductScreen = () => {
     watch,
     // Include reset function here
     reset,
-    formState: {errors},
-  } = useForm({
+    formState: { errors },
+  } = useForm<any>({
     defaultValues: defaultProductData,
   });
 
@@ -72,7 +83,7 @@ const CreateProductScreen = () => {
     fields: variantFields,
     append: appendVariant,
     remove: removeVariant,
-  } = useFieldArray({control, name: 'variants'});
+  } = useFieldArray({ control, name: 'variants' as any });
 
   // Features Array
   const {
@@ -81,7 +92,7 @@ const CreateProductScreen = () => {
     remove: removeFeature,
   } = useFieldArray({
     control,
-    name: 'features',
+    name: 'features' as any,
   });
 
   // Gallery Images Array
@@ -91,7 +102,7 @@ const CreateProductScreen = () => {
     remove: removeGallery,
   } = useFieldArray({
     control,
-    name: 'gallery_images',
+    name: 'gallery_images' as any,
   });
 
   // --- Category Fetch Effect ---
@@ -112,22 +123,22 @@ const CreateProductScreen = () => {
       fetchCategory();
     }
   }, [isFocused]);
-  
+
   // --- Gallery Image Reset Effect (The Key Change) ---
   useEffect(() => {
-      // When the screen focuses, explicitly set the gallery_images state to an empty array
-      // to clear any potential stale field values from the initial render.
-      if (isFocused) {
-          setValue('gallery_images', [], { shouldValidate: false });
-      }
+    // When the screen focuses, explicitly set the gallery_images state to an empty array
+    // to clear any potential stale field values from the initial render.
+    if (isFocused) {
+      setValue('gallery_images', [], { shouldValidate: false });
+    }
   }, [isFocused, setValue]);
 
 
   // --- Category Selection Logic ---
   const handleSelectCategory = useCallback(
     category => {
-      setValue('category_id', category._id, {shouldValidate: true});
-      setValue('category_name', category.name, {shouldValidate: true});
+      setValue('category_id', category._id, { shouldValidate: true });
+      setValue('category_name', category.name, { shouldValidate: true });
       categorySheetRef.current?.close();
     },
     [setValue],
@@ -135,16 +146,50 @@ const CreateProductScreen = () => {
 
   // --- Image Management Logic ---
   const MAX_GALLERY_IMAGES = 4;
-  
+
   const handleAddGalleryImage = () => {
-      if (galleryFields.length < MAX_GALLERY_IMAGES) {
-          appendGallery({ value: "" });
-      } else {
-          Alert.alert("Limit Reached", `You can only add a maximum of ${MAX_GALLERY_IMAGES} gallery images.`);
-      }
+    if (galleryFields.length < MAX_GALLERY_IMAGES) {
+      appendGallery({ value: "" } as any);
+    } else {
+      Alert.alert("Limit Reached", `You can only add a maximum of ${MAX_GALLERY_IMAGES} gallery images.`);
+    }
   };
 
-  const handleRemoveGalleryImage = (index) => {
+  const handlePickMainImage = async () => {
+    try {
+      const image = await ImagePicker.openPicker({
+        width: 1000,
+        height: 1000,
+        cropping: true,
+      });
+      setValue('main_image_url', image.path, { shouldValidate: true });
+
+      // User request: when user select main image then that image also show on other images filed
+      // We'll populate empty gallery slots or at least the first one if it's empty
+      if (galleryFields.length === 0) {
+        appendGallery({ value: image.path } as any);
+      } else if (galleryFields.length > 0 && !(watch('gallery_images') as any)[0]?.value) {
+        setValue('gallery_images.0' as any, image.path);
+      }
+    } catch (error) {
+      console.log('Image Picker Error:', error);
+    }
+  };
+
+  const handlePickGalleryImage = async (index: number) => {
+    try {
+      const image = await ImagePicker.openPicker({
+        width: 1000,
+        height: 1000,
+        cropping: true,
+      });
+      setValue(`gallery_images.${index}` as any, image.path, { shouldValidate: true });
+    } catch (error) {
+      console.log('Image Picker Error:', error);
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
     if (galleryFields.length > 0) {
       removeGallery(index);
     }
@@ -152,36 +197,36 @@ const CreateProductScreen = () => {
 
   // --- Form Submission ---
   const onSubmit = async (data) => {
-      // --- STEP 1: Sanitize all fields before building dataToSend ---
+    // --- STEP 1: Sanitize all fields before building dataToSend ---
     const sanitizedData = { ...data };
-    
+
     // Convert empty strings for optional numerical fields to null/undefined
     // to satisfy Pydantic's 'float' requirement.
     ['base_price', 'discount_price'].forEach(field => {
-        if (sanitizedData[field] === '') {
-            // Setting to null or undefined makes it null in the JSON payload, 
-            // which Pydantic's Optional[float] handles correctly.
-            sanitizedData[field] = null; 
-        }
+      if (sanitizedData[field] === '') {
+        // Setting to null or undefined makes it null in the JSON payload, 
+        // which Pydantic's Optional[float] handles correctly.
+        sanitizedData[field] = null;
+      }
     });
 
     const dataToSend = {
       ...sanitizedData, // Use the sanitized data here
-      category: sanitizedData.category_id, 
+      category: sanitizedData.category_id,
       gallery_images: sanitizedData.gallery_images.filter(
         url => url && url.trim() !== '',
       ),
     };
-    
-    delete dataToSend.category_name; 
+
+    delete dataToSend.category_name;
 
     // --- STEP 2: Handle Variants/Simple Product Logic ---
     if (dataToSend.has_variants) {
-        delete dataToSend.price;
-        delete dataToSend.stock;
-        dataToSend.variants = dataToSend.variants || []; 
+      delete dataToSend.price;
+      delete dataToSend.stock;
+      dataToSend.variants = dataToSend.variants || [];
     } else {
-        delete dataToSend.variants;
+      delete dataToSend.variants;
     }
 
     // const dataToSend = {
@@ -220,11 +265,15 @@ const CreateProductScreen = () => {
           // },
         }
       );
-      console.log("-----response",response)
+      console.log("-----response", response)
       if (response.status === 201 || response.status === 200) {
         console.log('Product created successfully:', response.data);
+        // Add to Redux store
+        dispatch(addProduct(response.data));
+
         Alert.alert('Success 🎉', 'Product has been created successfully!');
-        // Optionally: Navigate away or reset the form here (e.g., reset(defaultProductData))
+        reset(defaultProductData);
+        navigation.goBack();
       } else {
         // Handle unexpected status codes
         Alert.alert('Error', `Failed to create product. Status: ${response.status}`);
@@ -232,7 +281,7 @@ const CreateProductScreen = () => {
 
     } catch (error) {
       console.error('API Request Error:', error.response?.data || error.message);
-      
+
       let errorMessage = 'An unexpected error occurred while saving the product.';
 
       if (error.response?.data?.detail) {
@@ -241,11 +290,11 @@ const CreateProductScreen = () => {
       } else if (error.message.includes('401')) {
         errorMessage = 'Authorization failed. Please log in again.';
       }
-      
+
       Alert.alert('Submission Failed', errorMessage);
     }
     // --------------------------
-  // };
+    // };
 
   };
 
@@ -263,8 +312,8 @@ const CreateProductScreen = () => {
         <Controller
           control={control}
           name="category_name"
-          rules={{required: 'Category selection is required.'}}
-          render={({field: {value}}) => (
+          rules={{ required: 'Category selection is required.' }}
+          render={({ field: { value } }) => (
             <TouchableOpacity
               style={[
                 styles.textInput,
@@ -323,8 +372,8 @@ const CreateProductScreen = () => {
             <Controller
               control={control}
               name="name"
-              rules={{required: 'Product Name is required.'}}
-              render={({field: {onChange, onBlur, value}}) => (
+              rules={{ required: 'Product Name is required.' }}
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[styles.textInput, errors.name && styles.inputError]}
                   onBlur={onBlur}
@@ -346,7 +395,7 @@ const CreateProductScreen = () => {
             <Controller
               control={control}
               name="brand"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={styles.textInput}
                   value={value}
@@ -367,7 +416,7 @@ const CreateProductScreen = () => {
             <Controller
               control={control}
               name="description"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={styles.textInput}
                   value={value}
@@ -383,44 +432,44 @@ const CreateProductScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Tags <Text style={styles.requiredStar}>*</Text></Text>
             <Controller
-                control={control}
-                name="tags"
-                rules={{
-                    validate: value => value.length > 0 || "At least one tag must be selected.",
-                }}
-                render={({ field: { value } }) => (
-                    <View style={styles.tagsRow}>
-                    {['New', 'Hot', 'Trending', 'Discount'].map(tag => {
-                        const isSelected = value.includes(tag);
-                        return (
-                        <TouchableOpacity
-                            key={tag}
-                            style={[
-                                styles.tagChip,
-                                isSelected && styles.tagChipSelected,
-                                errors.tags && styles.inputError, 
-                            ]}
-                            onPress={() => {
-                                const newTags = isSelected
-                                ? value.filter(t => t !== tag)
-                                : [...value, tag];
-                                setValue('tags', newTags, {shouldValidate: true});
-                            }}>
-                            <Text
-                            style={[
-                                styles.tagText,
-                                isSelected && styles.tagTextSelected,
-                            ]}>
-                            {tag}
-                            </Text>
-                        </TouchableOpacity>
-                        );
-                    })}
-                    </View>
-                )}
+              control={control}
+              name="tags"
+              rules={{
+                validate: value => value.length > 0 || "At least one tag must be selected.",
+              }}
+              render={({ field: { value } }) => (
+                <View style={styles.tagsRow}>
+                  {['New', 'Hot', 'Trending', 'Discount'].map(tag => {
+                    const isSelected = value.includes(tag);
+                    return (
+                      <TouchableOpacity
+                        key={tag}
+                        style={[
+                          styles.tagChip,
+                          isSelected && styles.tagChipSelected,
+                          errors.tags && styles.inputError,
+                        ]}
+                        onPress={() => {
+                          const newTags = isSelected
+                            ? value.filter(t => t !== tag)
+                            : [...value, tag];
+                          setValue('tags', newTags, { shouldValidate: true });
+                        }}>
+                        <Text
+                          style={[
+                            styles.tagText,
+                            isSelected && styles.tagTextSelected,
+                          ]}>
+                          {tag}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
             />
             {errors.tags && (
-                <Text style={styles.errorText}>{errors.tags.message}</Text>
+              <Text style={styles.errorText}>{errors.tags.message}</Text>
             )}
           </View>
 
@@ -430,7 +479,7 @@ const CreateProductScreen = () => {
             <Controller
               control={control}
               name="has_variants"
-              render={({field: {value, onChange}}) => (
+              render={({ field: { value, onChange } }) => (
                 <View style={styles.toggleRow}>
                   <Text style={styles.inputLabel}>Has Variants?</Text>
                   <Switch value={value} onValueChange={onChange} />
@@ -440,13 +489,13 @@ const CreateProductScreen = () => {
           </View>
 
           {/* Variants Section (with validation) */}
-            {hasVariants ? (
+          {hasVariants ? (
             <View style={styles.section}>
               <View style={styles.sectionTitleRow}>
                 <Text style={styles.sectionTitle}>Variants <Text style={styles.requiredStar}>*</Text></Text>
                 {/* Ensure new variants are appended with default stock */}
                 <TouchableOpacity
-                  onPress={() => appendVariant({name: '', price: '', stock: ''})} // 👈 ADDED STOCK DEFAULT
+                  onPress={() => appendVariant({ name: '', price: '', stock: '' })} // 👈 ADDED STOCK DEFAULT
                   style={styles.addButton}>
                   <FontAwesomeIcon icon={faPlus} size={14} color="#6366F1" />
                 </TouchableOpacity>
@@ -456,12 +505,12 @@ const CreateProductScreen = () => {
                 control={control}
                 name="variants"
                 rules={{
-                    validate: value => value.length > 0 || "At least one variant is required."
+                  validate: value => value.length > 0 || "At least one variant is required."
                 }}
-                render={() => null} 
+                render={() => <></>}
               />
-              {errors.variants?.message && (
-                  <Text style={styles.errorText}>{errors.variants.message}</Text>
+              {errors?.variants && (
+                <Text style={styles.errorText}>{(errors?.variants as any).message}</Text>
               )}
 
               {variantFields.map((item, index) => (
@@ -470,13 +519,13 @@ const CreateProductScreen = () => {
                   <Controller
                     control={control}
                     name={`variants.${index}.name`}
-                    rules={{required: 'Name is required.'}}
-                    render={({field: {onChange, value}}) => (
+                    rules={{ required: 'Name is required.' }}
+                    render={({ field: { onChange, value } }) => (
                       <TextInput
                         style={[
-                            styles.featureInput, 
-                            { flex: 1.5, marginRight: 8 }, // 👈 Adjusted flex for 3 inputs
-                            errors.variants?.[index]?.name && styles.inputError
+                          styles.featureInput,
+                          { flex: 1.5, marginRight: 8 }, // 👈 Adjusted flex for 3 inputs
+                          errors.variants?.[index]?.name && styles.inputError
                         ]}
                         placeholder="Variant Name"
                         value={value}
@@ -484,24 +533,24 @@ const CreateProductScreen = () => {
                       />
                     )}
                   />
-                  
+
                   {/* Variant Price Controller (Takes up 1/3 space) */}
                   <Controller
                     control={control}
                     name={`variants.${index}.price`}
                     rules={{
-                        required: 'Price is required.',
-                        pattern: {
-                            value: /^\d+(\.\d{1,2})?$/,
-                            message: "Invalid price."
-                        }
+                      required: 'Price is required.',
+                      pattern: {
+                        value: /^\d+(\.\d{1,2})?$/,
+                        message: "Invalid price."
+                      }
                     }}
-                    render={({field: {onChange, value}}) => (
+                    render={({ field: { onChange, value } }) => (
                       <TextInput
                         style={[
-                            styles.featureInput, 
-                            { flex: 1, marginRight: 8 }, // 👈 Adjusted flex
-                            errors.variants?.[index]?.price && styles.inputError
+                          styles.featureInput,
+                          { flex: 1, marginRight: 8 }, // 👈 Adjusted flex
+                          errors.variants?.[index]?.price && styles.inputError
                         ]}
                         placeholder="Price"
                         keyboardType="numeric"
@@ -516,18 +565,18 @@ const CreateProductScreen = () => {
                     control={control}
                     name={`variants.${index}.stock`} // 👈 NEW STOCK CONTROLLER
                     rules={{
-                        required: 'Stock is required.',
-                        pattern: {
-                            value: /^\d+$/,
-                            message: "Must be a whole number."
-                        }
+                      required: 'Stock is required.',
+                      pattern: {
+                        value: /^\d+$/,
+                        message: "Must be a whole number."
+                      }
                     }}
-                    render={({field: {onChange, value}}) => (
+                    render={({ field: { onChange, value } }) => (
                       <TextInput
                         style={[
-                            styles.featureInput, 
-                            { flex: 1, marginRight: 8 }, // 👈 Adjusted flex
-                            errors.variants?.[index]?.stock && styles.inputError
+                          styles.featureInput,
+                          { flex: 1, marginRight: 8 }, // 👈 Adjusted flex
+                          errors.variants?.[index]?.stock && styles.inputError
                         ]}
                         placeholder="Stock"
                         keyboardType="numeric"
@@ -549,30 +598,30 @@ const CreateProductScreen = () => {
                 </View>
               ))}
               {/* Display individual variant item errors */}
-              {variantFields.map((item, index) => (
-                    <View key={`err-${item.id}`} style={{marginBottom: 8}}>
-                        {errors.variants?.[index]?.name && <Text style={styles.errorText}>{errors.variants[index].name.message}</Text>}
-                        {errors.variants?.[index]?.price && <Text style={styles.errorText}>{errors.variants[index].price.message}</Text>}
-                        {errors.variants?.[index]?.stock && <Text style={styles.errorText}>{errors.variants[index].stock.message}</Text>} {/* 👈 ADDED STOCK ERROR */}
-                    </View>
+              {variantFields.map((item: any, index: number) => (
+                <View key={`err-${item.id}`} style={{ marginBottom: 8 }}>
+                  {errors.variants?.[index]?.name && <Text style={styles.errorText}>{(errors.variants as any)[index].name.message}</Text>}
+                  {errors.variants?.[index]?.price && <Text style={styles.errorText}>{(errors.variants as any)[index].price.message}</Text>}
+                  {errors.variants?.[index]?.stock && <Text style={styles.errorText}>{(errors.variants as any)[index].stock.message}</Text>} {/* 👈 ADDED STOCK ERROR */}
+                </View>
               ))}
             </View>
           ) : (
             // Single Product Mode (Price & Stock validation)
             <View style={styles.section}>
-              <View style={{marginBottom:20}}>
+              <View style={{ marginBottom: 20 }}>
                 <Text style={styles.inputLabel}>Product Price <Text style={styles.requiredStar}>*</Text></Text>
                 <Controller
                   control={control}
                   name="price"
                   rules={{
-                      required: 'Price is required.',
-                      pattern: {
-                          value: /^\d+(\.\d{1,2})?$/,
-                          message: "Must be a valid price."
-                      }
+                    required: 'Price is required.',
+                    pattern: {
+                      value: /^\d+(\.\d{1,2})?$/,
+                      message: "Must be a valid price."
+                    }
                   }}
-                  render={({field: {onChange, value}}) => (
+                  render={({ field: { onChange, value } }) => (
                     <TextInput
                       style={[styles.featureInput, errors.price && styles.inputError]}
                       placeholder="Enter product price"
@@ -582,7 +631,7 @@ const CreateProductScreen = () => {
                     />
                   )}
                 />
-              {errors.price && <Text style={styles.errorText}>{errors.price.message}</Text>}
+                {errors.price && <Text style={styles.errorText}>{errors.price.message}</Text>}
               </View>
 
               <Text style={styles.inputLabel}>Stock Quantity <Text style={styles.requiredStar}>*</Text></Text>
@@ -590,13 +639,13 @@ const CreateProductScreen = () => {
                 control={control}
                 name="stock"
                 rules={{
-                    required: 'Stock is required.',
-                    pattern: {
-                        value: /^\d+$/,
-                        message: "Must be a whole number."
-                    }
+                  required: 'Stock is required.',
+                  pattern: {
+                    value: /^\d+$/,
+                    message: "Must be a whole number."
+                  }
                 }}
-                render={({field: {onChange, value}}) => (
+                render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={[styles.featureInput, errors.stock && styles.inputError]}
                     placeholder="Enter stock quantity"
@@ -614,54 +663,54 @@ const CreateProductScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Delivery Options</Text>
             <Controller
-                control={control}
-                name="delivery_options"
-                render={({ field: { value } }) => (
-                    ['Free Delivery', 'Cash on Delivery', '7-Day Return'].map(
-                        option => {
-                            const isSelected = value.includes(option);
-                            return (
-                            <TouchableOpacity
-                                key={option}
-                                style={styles.deliveryRow}
-                                onPress={() => {
-                                    const updatedOptions = isSelected
-                                    ? value.filter(o => o !== option)
-                                    : [...value, option];
-                                    setValue('delivery_options', updatedOptions, {
-                                        shouldValidate: true,
-                                    });
-                                }}>
-                                <Text style={styles.deliveryText}>{option}</Text>
-                                <Text>{isSelected ? '✅' : '⬜'}</Text>
-                            </TouchableOpacity>
-                            );
-                        },
-                    )
-                )}
+              control={control}
+              name="delivery_options"
+              render={({ field: { value } }) => (
+                ['Free Delivery', 'Cash on Delivery', '7-Day Return'].map(
+                  option => {
+                    const isSelected = value.includes(option);
+                    return (
+                      <TouchableOpacity
+                        key={option}
+                        style={styles.deliveryRow}
+                        onPress={() => {
+                          const updatedOptions = isSelected
+                            ? value.filter(o => o !== option)
+                            : [...value, option];
+                          setValue('delivery_options', updatedOptions, {
+                            shouldValidate: true,
+                          });
+                        }}>
+                        <Text style={styles.deliveryText}>{option}</Text>
+                        <Text>{isSelected ? '✅' : '⬜'}</Text>
+                      </TouchableOpacity>
+                    );
+                  },
+                )
+              )}
             />
           </View>
 
           {/* Key Features (with validation) */}
-         <View style={styles.section}>
+          <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-                <Text style={styles.sectionTitle}>Key Features <Text style={styles.requiredStar}>*</Text></Text>
-                <TouchableOpacity onPress={() => appendFeature({ label: "", value: "" })} style={styles.addButton}>
-                    <FontAwesomeIcon icon={faPlus} size={14} color="#6366F1" />
-                </TouchableOpacity>
+              <Text style={styles.sectionTitle}>Key Features <Text style={styles.requiredStar}>*</Text></Text>
+              <TouchableOpacity onPress={() => appendFeature({ label: "", value: "" })} style={styles.addButton}>
+                <FontAwesomeIcon icon={faPlus} size={14} color="#6366F1" />
+              </TouchableOpacity>
             </View>
-            
+
             {/* Validation Check for at least one feature */}
             <Controller
-                control={control}
-                name="features"
-                rules={{
-                    validate: value => value.length > 0 || "At least one feature is required."
-                }}
-                render={() => null} 
+              control={control}
+              name="features"
+              rules={{
+                validate: value => value.length > 0 || "At least one feature is required."
+              }}
+              render={() => <></>}
             />
-            {errors.features?.message && (
-                <Text style={styles.errorText}>{errors.features.message}</Text>
+            {errors.features && (
+              <Text style={styles.errorText}>{(errors.features as any).message}</Text>
             )}
 
             {featureFields.map((item, index) => (
@@ -670,7 +719,7 @@ const CreateProductScreen = () => {
                 <Controller
                   control={control}
                   name={`features.${index}.label`}
-                  rules={{required: 'Label is required.'}}
+                  rules={{ required: 'Label is required.' }}
                   render={({ field: { onChange, value } }) => (
                     <TextInput
                       style={[styles.featureInput, { marginRight: 8 }, errors.features?.[index]?.label && styles.inputError]}
@@ -685,7 +734,7 @@ const CreateProductScreen = () => {
                 <Controller
                   control={control}
                   name={`features.${index}.value`}
-                  rules={{required: 'Value is required.'}}
+                  rules={{ required: 'Value is required.' }}
                   render={({ field: { onChange, value } }) => (
                     <TextInput
                       style={[styles.featureInput, errors.features?.[index]?.value && styles.inputError]}
@@ -705,77 +754,86 @@ const CreateProductScreen = () => {
             ))}
             {/* Display individual feature item errors */}
             {featureFields.map((item, index) => (
-                <View key={`err-${item.id}`} style={{marginBottom: 8}}>
-                    {errors.features?.[index]?.label && <Text style={styles.errorText}>{errors.features[index].label.message}</Text>}
-                    {errors.features?.[index]?.value && <Text style={styles.errorText}>{errors.features[index].value.message}</Text>}
-                </View>
+              <View key={`err-${item.id}`} style={{ marginBottom: 8 }}>
+                {errors.features?.[index]?.label && <Text style={styles.errorText}>{errors.features[index].label.message}</Text>}
+                {errors.features?.[index]?.value && <Text style={styles.errorText}>{errors.features[index].value.message}</Text>}
+              </View>
             ))}
           </View>
-          
+
           {/* Images Section */}
           <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                  <Text style={styles.sectionTitle}>Images (URLs)</Text>
-                  {/* Conditionally render the "+" button based on the limit */}
-                  {galleryFields.length < MAX_GALLERY_IMAGES && (
-                      <TouchableOpacity 
-                          onPress={handleAddGalleryImage} 
-                          style={styles.addButton}
-                      >
-                          <FontAwesomeIcon icon={faPlus} size={14} color="#6366F1" />
-                      </TouchableOpacity>
-                  )}
-              </View>
-              
-              {/* === Main Image URL Controller === */}
-              <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Main Image URL <Text style={styles.requiredStar}>*</Text></Text>
-                  <Controller
-                      control={control}
-                      name="main_image_url"
-                      rules={{ required: "Main Image URL is required." }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                          <TextInput
-                              style={[styles.textInput, errors.main_image_url && styles.inputError]}
-                              onBlur={onBlur}
-                              onChangeText={onChange}
-                              value={value}
-                              placeholder="https://main-image.url/photo.jpg"
-                              placeholderTextColor="#999"
-                          />
-                      )}
-                  />
-                  {errors.main_image_url && <Text style={styles.errorText}>{errors.main_image_url.message}</Text>}
-              </View>
-  
-              <Text style={styles.subTitle}>Gallery Images ({galleryFields.length} / {MAX_GALLERY_IMAGES})</Text>
-              {/* Only loop and render if there are fields */}
+            <View style={styles.sectionTitleRow}>
+              <Text style={styles.sectionTitle}>Product Images</Text>
+              {galleryFields.length < MAX_GALLERY_IMAGES && (
+                <TouchableOpacity
+                  onPress={handleAddGalleryImage}
+                  style={styles.addButton}
+                >
+                  <FontAwesomeIcon icon={faPlus} size={14} color="#6366F1" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* === Main Image Picker === */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Main Image <Text style={styles.requiredStar}>*</Text></Text>
+              <Controller
+                control={control}
+                name="main_image_url"
+                rules={{ required: "Main Image is required." }}
+                render={({ field: { value } }) => (
+                  <TouchableOpacity
+                    style={[styles.imagePickerPlaceholder, errors.main_image_url && styles.inputError]}
+                    onPress={handlePickMainImage}
+                  >
+                    {value ? (
+                      <Image source={{ uri: value }} style={styles.pickedImage} />
+                    ) : (
+                      <View style={styles.placeholderContent}>
+                        <FontAwesomeIcon icon={faCameraAlt} size={24} color="#999" />
+                        <Text style={styles.placeholderText}>Select Main Image</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+              {errors.main_image_url && <Text style={styles.errorText}>{(errors.main_image_url as any).message}</Text>}
+            </View>
+
+            <Text style={styles.subTitle}>Gallery Images ({galleryFields.length} / {MAX_GALLERY_IMAGES})</Text>
+            <View style={styles.galleryContainer}>
               {galleryFields.map((item, index) => (
-                <View key={item.id} style={[styles.galleryinputGroup]}>
-                   {/* Controller for each Gallery Image URL */}
-                   <Controller
-                      control={control}
-                      name={`gallery_images.${index}`}
-                      render={({ field: { onChange, value } }) => (
-                        <TextInput
-                          style={[styles.textInput,{width:'90%',marginRight:10}]}
-                          placeholder={`Gallery Image ${index + 1} URL (Optional)`}
-                          placeholderTextColor="#999"
-                          value={value}
-                          onChangeText={onChange}
-                        />
-                      )}
-                    />
-                    {/* Allow removing any gallery image field */}
-                    <TouchableOpacity 
-                      onPress={() => handleRemoveGalleryImage(index)} 
-                      style={styles.removeGalleryButton}
-                    >
-                      <FontAwesomeIcon icon={faTrashAlt} size={14} color="#EF4444" />
-                    </TouchableOpacity>
+                <View key={item.id} style={styles.galleryItemContainer}>
+                  <Controller
+                    control={control}
+                    name={`gallery_images.${index}` as any}
+                    render={({ field: { value } }) => (
+                      <TouchableOpacity
+                        style={styles.galleryPicker}
+                        onPress={() => handlePickGalleryImage(index)}
+                      >
+                        {(value as any)?.value || (typeof value === 'string' && value) ? (
+                          <Image
+                            source={{ uri: (value as any)?.value || value }}
+                            style={styles.pickedImage}
+                          />
+                        ) : (
+                          <FontAwesomeIcon icon={faPlus} size={20} color="#999" />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity
+                    onPress={() => handleRemoveGalleryImage(index)}
+                    style={styles.removeImageBadge}
+                  >
+                    <FontAwesomeIcon icon={faTrashAlt} size={10} color="#FFF" />
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -793,7 +851,7 @@ const CreateProductScreen = () => {
         ref={categorySheetRef}
         height={400}
         openDuration={250}
-        customStyles={{container: styles.sheetModal}}>
+        customStyles={{ container: styles.sheetModal }}>
         {renderCategorySheet()}
       </RBSheet>
     </View>
@@ -802,10 +860,10 @@ const CreateProductScreen = () => {
 
 // --- Styles (Unchanged) ---
 const styles = StyleSheet.create({
-  fullContainer: {flex: 1, backgroundColor: '#F5F5F5'},
-  scrollContainer: {flex: 1},
-  scrollContent: {paddingBottom: 100},
-  formContainer: {padding: 16},
+  fullContainer: { flex: 1, backgroundColor: '#F5F5F5' },
+  scrollContainer: { flex: 1 },
+  scrollContent: { paddingBottom: 100 },
+  formContainer: { padding: 16 },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -814,12 +872,12 @@ const styles = StyleSheet.create({
   },
   // Input Group Styles
   inputGroup: {
-  marginBottom: 15,
+    marginBottom: 15,
   },
   galleryinputGroup: {
-     flexDirection: 'row',   // put input + trash in one line
-  alignItems: 'center',
-  marginBottom: 15,
+    flexDirection: 'row',   // put input + trash in one line
+    alignItems: 'center',
+    marginBottom: 15,
   },
   inputLabel: {
     fontSize: 14,
@@ -941,12 +999,77 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  // New Styles for Image Picker
+  imagePickerPlaceholder: {
+    width: '100%',
+    height: 180,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  pickedImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  placeholderContent: {
+    alignItems: 'center',
+  },
+  placeholderText: {
+    marginTop: 8,
+    color: '#94A3B8',
+    fontSize: 14,
+  },
+  galleryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 12,
+  },
+  galleryItemContainer: {
+    width: (screenWidth - 80) / 4, // Adjust based on padding
+    height: (screenWidth - 80) / 4,
+    position: 'relative',
+  },
+  galleryPicker: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  removeImageBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#EF4444',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
   },
   // RBSheet Styles
   sheetModal: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     backgroundColor: '#fff',
   },
   sheetContainer: {
@@ -968,7 +1091,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  tagsRow: {flexDirection: 'row', flexWrap: 'wrap', marginTop: 8},
+  tagsRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   tagChip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -978,9 +1101,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
-  tagChipSelected: {backgroundColor: '#6366F1', borderColor: '#6366F1'},
-  tagText: {fontSize: 14, color: '#333'},
-  tagTextSelected: {color: '#fff'},
+  tagChipSelected: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
+  tagText: { fontSize: 14, color: '#333' },
+  tagTextSelected: { color: '#fff' },
   toggleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -993,7 +1116,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  deliveryText: {fontSize: 16, color: '#333'},
+  deliveryText: { fontSize: 16, color: '#333' },
 });
 
 export default CreateProductScreen;

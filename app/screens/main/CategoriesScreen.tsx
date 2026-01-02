@@ -1,33 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, FlatList, Pressable } from 'react-native';
-import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import ApiConfig from '../../config/api-config';
+import { CallServiceFor } from '../../services/call_services_for';
 
-
-// interface Category {
-//   _id: string;
-//   category_name: string;
-//   category_id: string;
-//   product_count: number;
-// }
 
 export default function CategoriesScreen() {
-  const navigation = useNavigation();
-  // const [categories, setCategories] = useState<Category[]>([]);
+  const navigation = useNavigation<any>();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchCategories = async () => {
+    const fetchCategoriesData = async () => {
       try {
-        const res = await axios.get(`${ApiConfig.BASE_URL}category/categories-with-product-count`);
+        const res = await CallServiceFor(ApiConfig.FETCH_CATEGORIES_WITH_PRODUCT_COUNTS, 'get', {});
         if (!isMounted) return;
 
         const sorted = res.data.sort(
-          (a,b) => b.product_count - a.product_count
+          (a: any, b: any) => b.product_count - a.product_count
         );
 
         setCategories(sorted);
@@ -38,11 +30,11 @@ export default function CategoriesScreen() {
       }
     };
 
-    fetchCategories();
+    fetchCategoriesData();
     return () => { isMounted = false };
   }, []);
 
-  const renderItem = ({ item }: { item: Category }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <Pressable
       onPress={() => navigation.navigate("categoryDetail", { categoryId: item.category_id })}
       style={{
