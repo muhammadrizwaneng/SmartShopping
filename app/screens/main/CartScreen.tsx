@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../../redux/cartSlice';
 import { colors } from '../../theme/color';
+import AuthModal from '../../components/AuthModal';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -13,6 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 const CartScreen = () => {
   const navigation = useNavigation<any>();
   const { items, totalItems, totalPrice } = useSelector((state: any) => state.cart);
+  const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
+  const [isAuthModalVisible, setIsAuthModalVisible] = React.useState(false);
   const dispatch = useDispatch();
 
   const renderItem = ({ item }: { item: any }) => (
@@ -65,20 +70,30 @@ const CartScreen = () => {
     </View>
   );
 
-  return (
-    <View style={styles.container}>
-      <LinearGradient colors={[colors.primary, colors.gradientEnd]} style={styles.headerBackground}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>My Cart</Text>
-            <View style={styles.itemCountBadge}>
-              <Text style={styles.itemCountText}>{totalItems} Items</Text>
-            </View>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
+  const renderContent = () => {
+    if (!isLoggedIn) {
+      return (
+        <View style={styles.emptyCart}>
+          <LinearGradient
+            colors={['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.05)']}
+            style={styles.emptyIconContainer}
+          >
+            <FontAwesomeIcon icon={faUser} size={40} color={colors.primary} />
+          </LinearGradient>
+          <Text style={styles.emptyCartText}>Login to see your cart</Text>
+          <Text style={styles.emptyCartSubtext}>Please login or continue as a guest to view your shopping cart and manage items.</Text>
+          <TouchableOpacity
+            style={styles.shopNowButton}
+            onPress={() => setIsAuthModalVisible(true)}
+          >
+            <Text style={styles.shopNowText}>Sign In / Join</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
-      {items.length === 0 ? (
+    if (items.length === 0) {
+      return (
         <View style={styles.emptyCart}>
           <LinearGradient
             colors={['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.05)']}
@@ -95,39 +110,63 @@ const CartScreen = () => {
             <Text style={styles.shopNowText}>Start Shopping</Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <>
-          <FlatList
-            data={items}
-            renderItem={renderItem}
-            keyExtractor={(item) => item._id || item.id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
-          <SafeAreaView style={styles.footer}>
-            <View style={styles.summaryContainer}>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total Amount</Text>
-                <Text style={styles.totalAmount}>${totalPrice.toFixed(2)}</Text>
-              </View>
+      );
+    }
+
+    return (
+      <>
+        <FlatList
+          data={items}
+          renderItem={renderItem}
+          keyExtractor={(item) => item._id || item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+        <SafeAreaView style={styles.footer} edges={['bottom'] as any}>
+          <View style={styles.summaryContainer}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total Amount</Text>
+              <Text style={styles.totalAmount}>${totalPrice.toFixed(2)}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={() => navigation.navigate('Checkout')}
-              activeOpacity={0.8}
+          </View>
+          <TouchableOpacity
+            style={styles.checkoutButton}
+            onPress={() => navigation.navigate('Checkout')}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[colors.primary, colors.gradientEnd]}
+              style={styles.buttonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
             >
-              <LinearGradient
-                colors={[colors.primary, colors.gradientEnd]}
-                style={styles.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </SafeAreaView>
-        </>
-      )}
+              <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <LinearGradient colors={[colors.primary, colors.gradientEnd]} style={styles.headerBackground}>
+        <SafeAreaView edges={['top'] as any}>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>My Cart</Text>
+            <View style={styles.itemCountBadge}>
+              <Text style={styles.itemCountText}>{totalItems} Items</Text>
+            </View>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      {renderContent()}
+
+      <AuthModal
+        isVisible={isAuthModalVisible}
+        onClose={() => setIsAuthModalVisible(false)}
+      />
     </View>
   );
 };
@@ -147,7 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 25,
-    marginTop: 10,
+    paddingBottom: 15, // Added padding to push content down
   },
   headerTitle: {
     fontSize: 24,

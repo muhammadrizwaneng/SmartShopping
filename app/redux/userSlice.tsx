@@ -17,7 +17,7 @@ const initialState: AuthState = {
   userInfo: null,
   error: null,
   isLoggedIn: false,
-  token: null
+  token: null,
 };
 
 // Async thunk for user login
@@ -46,6 +46,34 @@ export const loginUser = createAsyncThunk(
     } catch (error: any) {
       console.error('Login error:', error);
       return error.response.data;
+    }
+  }
+);
+
+// Async thunk for guest login
+export const guestLogin = createAsyncThunk(
+  'auth/guestLogin',
+  async (_, { dispatch }) => {
+    const randomId = Math.floor(Math.random() * 10000);
+    const guestData = {
+      name: `Guest User ${randomId}`,
+      email: `guest_${randomId}@smartshopping.com`,
+      password: 'GuestPassword123',
+      confirmPassword: 'GuestPassword123',
+      phoneNumber: '0000000000',
+      role: 'user',
+    };
+
+    try {
+      const response = await CallServiceFor(ApiConfig.SIGNUP, 'post', guestData);
+      if (response.status === 200 || response.status === 201) {
+        return response.data;
+      } else {
+        throw new Error(response.data?.message || 'Guest signup failed');
+      }
+    } catch (error: any) {
+      console.error('Guest login error:', error);
+      throw error;
     }
   }
 );
@@ -99,7 +127,7 @@ const authSlice = createSlice({
       const userData = {
         user: action.payload.user,
         token: action.payload.access_token,
-        isLoggedIn: true
+        isLoggedIn: true,
       };
 
       AsyncStorage.setItem('userData', JSON.stringify(userData));
@@ -117,6 +145,35 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
     });
 
+    // GUEST LOGIN
+    builder.addCase(guestLogin.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+
+    builder.addCase(guestLogin.fulfilled, (state, action: any) => {
+      console.log('Guest Login Success:', action.payload);
+
+      const userData = {
+        user: action.payload.user || action.payload,
+        token: action.payload.access_token,
+        isLoggedIn: true,
+      };
+
+      AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+      state.loading = false;
+      state.isLoggedIn = true;
+      state.userInfo = action.payload.user || action.payload;
+      state.token = action.payload.access_token;
+    });
+
+    builder.addCase(guestLogin.rejected, (state, action: any) => {
+      state.loading = false;
+      state.error = action.error.message || 'Guest login failed';
+      state.isLoggedIn = false;
+    });
+
     // LOGOUT
     builder.addCase(logoutUser.fulfilled, (state) => {
       // Reset all state to initial values
@@ -126,7 +183,7 @@ const authSlice = createSlice({
         userInfo: null,
         token: null,
         loading: false,
-        error: null
+        error: null,
       };
     });
   },

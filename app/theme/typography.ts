@@ -1,26 +1,38 @@
 export const typography = {
-  // Font families
+  // Font families (from Figma)
   fontFamily: {
-    regular: 'System',
-    medium: 'System',
-    bold: 'System',
-    light: 'System',
+    regular: 'Raleway',
+    medium: 'Raleway',
+    bold: 'Raleway',
+    light: 'Nunito Sans',
+    sans: 'Nunito Sans',
+    poppins: 'Poppins',
   },
-  
-  // Font sizes
+
+  // Font sizes (from Figma)
   fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
-    '2xl': 24,
-    '3xl': 30,
-    '4xl': 36,
-    '5xl': 48,
+    xs: 10,
+    sm: 11,
+    base: 12,
+    lg: 13,
+    xl: 14,
+    '2xl': 15,
+    '3xl': 16,
+    '4xl': 17,
+    '5xl': 18,
+    '6xl': 19,
+    '7xl': 20,
+    '8xl': 21,
+    '9xl': 22,
+    '10xl': 24,
+    '11xl': 26,
+    '12xl': 28,
+    '13xl': 29,
+    '14xl': 50,
+    '15xl': 52,
   },
-  
-  // Font weights
+
+  // Font weights (from Figma)
   fontWeight: {
     light: 300,
     normal: 400,
@@ -29,15 +41,15 @@ export const typography = {
     bold: 700,
     extrabold: 800,
   },
-  
-  // Line heights
+
+  // Line heights (from Figma)
   lineHeight: {
-    tight: 1.25,
+    tight: 1.2,
     normal: 1.5,
-    relaxed: 1.75,
+    relaxed: 1.7,
   },
-  
-  // Letter spacing
+
+  // Letter spacing (from Figma)
   letterSpacing: {
     tight: -0.5,
     normal: 0,

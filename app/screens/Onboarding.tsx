@@ -51,12 +51,12 @@ const Onboarding = () => {
   );
 
   const handleNext = () => {
-    console.log("=-=-=-=currentIndex", currentIndex)
+    console.log('=-=-=-=currentIndex', currentIndex);
     if (currentIndex < slides.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      console.log("-    ")
-      navigation.navigate("WelcomeScreen"); // change with your route name
+      console.log('-    ');
+      navigation.navigate('WelcomeScreen'); // change with your route name
     }
   };
 

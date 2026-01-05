@@ -9,6 +9,9 @@ import { faHeart, faStar, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { colors } from '../theme/color';
 import * as Animatable from 'react-native-animatable';
+import { useSelector } from 'react-redux';
+import AuthModal from './AuthModal';
+import { useState } from 'react';
 
 interface Product {
   _id: string;
@@ -32,6 +35,8 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) => {
   const dispatch = useDispatch();
   const scaleValue = new Animated.Value(1);
+  const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
+  const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
 
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
@@ -48,6 +53,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) =>
   };
 
   const handleAddToCart = () => {
+    if (!isLoggedIn) {
+      setIsAuthModalVisible(true);
+      return;
+    }
     dispatch(
       addToCart({
         id: product._id,
@@ -101,7 +110,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) =>
 
             <View style={styles.footer}>
               <View>
-                <Text style={styles.price}>${product.price?.toFixed(2)}</Text>
+                <Text style={styles.price}>
+                  ${(product.price || (product.has_variants && product.variants && product.variants[0]?.price) || 0).toFixed(2)}
+                </Text>
                 {product.originalPrice && (
                   <Text style={styles.originalPrice}>${product.originalPrice.toFixed(2)}</Text>
                 )}
@@ -113,6 +124,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) =>
           </View>
         </Animated.View>
       </TouchableOpacity>
+      <AuthModal
+        isVisible={isAuthModalVisible}
+        onClose={() => setIsAuthModalVisible(false)}
+        onSuccess={handleAddToCart}
+      />
     </Animatable.View>
   );
 };
@@ -120,13 +136,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) =>
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderRadius: spacing.borderRadius.xl,
+    borderRadius: spacing.borderRadius.lg,
     marginRight: spacing.md,
     width: 165,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.border,
-    ...spacing.shadow.md,
+    ...spacing.shadow.sm,
   },
   imageContainer: {
     position: 'relative',

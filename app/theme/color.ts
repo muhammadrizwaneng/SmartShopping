@@ -1,52 +1,52 @@
 export const colors = {
-  // Primary colors - Vibrant Blue/Indigo
-  primary: '#4F46E5', // Indigo 600
-  primaryLight: '#818CF8', // Indigo 400
-  primaryDark: '#3730A3', // Indigo 800
+  // Primary colors (from Figma)
+  primary: '#003BE3', // extracted blue
+  primaryLight: '#0042FF', // lighter blue variant
+  primaryDark: '#004BFE', // darker blue variant
 
-  // Secondary colors - Emerald
-  secondary: '#10B981',
-  secondaryLight: '#34D399',
-  secondaryDark: '#059669',
+  // Secondary colors (from Figma)
+  secondary: '#9DACFF', // extracted purple/blue
+  secondaryLight: '#AAC0FF',
+  secondaryDark: '#9EACFF',
 
-  // Accent colors - Amber
-  accent: '#F59E0B',
-  accentLight: '#FBBF24',
-  accentDark: '#D97706',
+  // Accent colors (from Figma)
+  accent: '#9DEB44', // extracted green/yellow
+  accentLight: '#C4FF68',
+  accentDark: '#A0E842',
 
-  // Status colors
-  success: '#10B981',
+  // Status colors (from Figma)
+  success: '#9DEB44',
   warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
+  error: '#D97474', // extracted red
+  info: '#003BE3',
 
-  // Neutral colors
+  // Neutral colors (from Figma)
   white: '#FFFFFF',
   black: '#000000',
-  dark: '#0F172A', // Slate 900
-  gray: '#64748B', // Slate 500
-  lightGray: '#F1F5F9', // Slate 100
-  background: '#F8FAFC', // Slate 50
+  dark: '#0D0D0D', // extracted dark gray
+  gray: '#A5A5A5', // extracted gray
+  lightGray: '#E8E8E8', // extracted light gray
+  background: '#FFFFFF', // from Start frame
   surface: '#FFFFFF',
-  border: '#E2E8F0', // Slate 200
+  border: '#CCCCCC', // extracted border gray
 
   // Glass tokens
   glassBackground: 'rgba(255, 255, 255, 0.7)',
   glassBorder: 'rgba(255, 255, 255, 0.3)',
 
-  // Text colors
-  textPrimary: '#0F172A', // Slate 900
-  textSecondary: '#475569', // Slate 600
-  textLight: '#94A3B8', // Slate 400
+  // Text colors (from Figma)
+  textPrimary: '#0D0D0D', // extracted dark text
+  textSecondary: '#666666',
+  textLight: '#999999',
   textWhite: '#FFFFFF',
 
-  // Gradient colors
-  gradientStart: '#4F46E5',
-  gradientEnd: '#7C3AED', // Violet 600
+  // Gradient colors (from Figma)
+  gradientStart: '#003BE3',
+  gradientEnd: '#9DACFF',
 
   // Shopping specific colors
-  priceGreen: '#059669',
-  priceRed: '#DC2626',
-  discount: '#E11D48', // Rose 600
+  priceGreen: '#9DEB44',
+  priceRed: '#D97474',
+  discount: '#D97474',
   rating: '#F59E0B',
 };

@@ -30,7 +30,7 @@ const slides = [
     title: 'Shop Now',
     desc: 'Quick checkout and secure payment options for a seamless experience.',
     img: require('../../assets/images/Image4.jpg'),
-  }
+  },
 ];
 
 const SignUp_Step2 = (props: any) => {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5
+    elevation: 5,
   },
 
   imageBox: {
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     width: 326,
     marginBottom: 50,
     overflow: 'hidden',
-    borderRadius: 20
+    borderRadius: 20,
   },
   mainImage: { width: '100%', height: '100%' },
 
@@ -152,13 +152,13 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 28,
     marginBottom: 25,
-    fontFamily: 'Raleway-Bold'
+    fontFamily: 'Raleway-Bold',
   },
   desc: {
     color: '#000',
     fontSize: 19,
     textAlign: 'center',
-    fontFamily: 'nunito-sans.light'
+    fontFamily: 'nunito-sans.light',
   },
 
   paginationContainer: {

@@ -83,7 +83,7 @@ const productSlice = createSlice({
     },
     addToRecentlyViewed: (state, action) => {
       const product = action.payload;
-      if (!product || !product._id) return;
+      if (!product || !product._id) {return;}
 
       // Remove if already exists to move to top
       const filtered = state.recentlyViewed.filter(p => p._id !== product._id);

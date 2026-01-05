@@ -7,23 +7,28 @@ export const spacing = {
   '2xl': 48,
   '3xl': 64,
   '4xl': 96,
-  
-  // Component specific spacing
+
+  // Component specific spacing (from Figma)
   cardPadding: 16,
   screenPadding: 20,
   buttonPadding: 12,
   inputPadding: 14,
-  
-  // Border radius
+
+  // Border radius (from Figma)
   borderRadius: {
+    xs: 2,
     sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
+    md: 6,
+    lg: 8,
+    xl: 10,
+    '2xl': 12,
+    '3xl': 14,
+    '4xl': 16,
+    '5xl': 18,
     full: 9999,
   },
-  
-  // Shadows
+
+  // Shadows (from Figma)
   shadow: {
     sm: {
       shadowColor: '#000',

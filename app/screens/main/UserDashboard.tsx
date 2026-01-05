@@ -55,7 +55,7 @@ const UserDashboardScreen = () => {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
               <Text style={styles.sectionText}>Lorem ipsum dolor sit amet, consectetur adipiscing {'\n'} elit. Maecenas hendrerit luctus libero ac vulputate.</Text>
               <View style={{ width: 30, height: 30 }}>
-                <Image source={require('../../assets/images/arrow-back.png')} style={{ width: '100%', height: '100%' }} resizeMode='contain' />
+                <Image source={require('../../assets/images/arrow-back.png')} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
               </View>
             </View>
           </View>
@@ -113,19 +113,19 @@ const UserDashboardScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recently viewed</Text>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>My Orders</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>To Pay</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>To Recieve</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>To Review</Text>
           </TouchableOpacity>
@@ -150,17 +150,17 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     marginTop: 50,
-    padding: 20
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: 8,
   },
   iconheader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 10,
   },
   greeting: {
     fontSize: 16,
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
   },
 
   profileImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     borderRadius: 45, // optional but keeps smooth edges
   },
   profileImageContainer: {
@@ -243,26 +243,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: '#004CFF',
-    borderRadius: 40
+    borderRadius: 40,
   },
   IconContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 22
+    marginBottom: 22,
   },
   barcodeImageContainer: {
     width: 35,
-    height: 35
+    height: 35,
   },
   barcodeImage: {
     width: '100%',
-    height: '100%'
+    height: '100%',
   },
   headerGreeting: {
     fontSize: 28,
     fontFamily: 'Raleway-Bold',
-    marginBottom: 16
+    marginBottom: 16,
   },
   recentlyViewText: {
     fontSize: 21,

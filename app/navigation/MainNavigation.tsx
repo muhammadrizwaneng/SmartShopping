@@ -30,6 +30,7 @@ import SearchScreen from '../screens/main/SearchScreen';
 import CheckoutScreen from '../screens/main/CheckoutScreen';
 import WishlistScreen from '../screens/main/WishlistScreen';
 import ProductOrderScreen from '../screens/ProductOrderScreen';
+import ProfileDetailScreen from '../screens/main/ProfileDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -38,13 +39,13 @@ const HomeStack = () => (
 
   <Stack.Navigator>
     <Stack.Screen
-      name="UserDashboard"
-      component={UserDashboardScreen}
+      name="HomeMain"
+      component={HomeScreen}
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="HomeMain"
-      component={HomeScreen}
+      name="UserDashboard"
+      component={UserDashboardScreen}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -145,6 +146,16 @@ const ProfileStack = () => (
         headerTintColor: colors.white,
       }}
     />
+    <Stack.Screen
+      name="ProfileDetailScreen"
+      component={ProfileDetailScreen}
+      options={{
+        headerTitle: 'Profile Details',
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.white,
+      }}
+    />
+
   </Stack.Navigator>
 );
 
@@ -181,9 +192,14 @@ const MainNavigator = () => {
           backgroundColor: colors.white,
           borderTopWidth: 1,
           borderTopColor: colors.lightGray,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 65,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
         },
         headerShown: false,
       })}>

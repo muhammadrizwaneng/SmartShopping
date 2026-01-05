@@ -21,7 +21,7 @@ const SplashScreen = () => {
         <Text style={styles.title}>Smart Shopping</Text>
         <Text style={styles.subtitle}>AI-Powered Assistant</Text>
       </Animatable.View>
-      
+
       <Animatable.View
         animation="fadeInUp"
         delay={1000}

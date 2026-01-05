@@ -28,12 +28,12 @@ const SearchScreen = () => {
     const [searched, setSearched] = useState(false);
 
     const handleSearch = async () => {
-        if (!searchQuery.trim()) return;
+        if (!searchQuery.trim()) {return;}
 
         setLoading(true);
         setSearched(true);
         try {
-            // The API getAllProducts doesn't seem to have a query param in the path, 
+            // The API getAllProducts doesn't seem to have a query param in the path,
             // but let's assume it accepts a query param or we filter.
             // Based on typical REST, we'll try passing it as a param.
             const response = await CallServiceFor(ApiConfig.FETCH_LIST_PRODUCTS, 'get', {});

@@ -151,9 +151,9 @@ const LoginScreen = ({navigation}: any) => {
             </TouchableOpacity>
           </View>
           {errors.password && (
-            
+
               <Text style={styles.errorText}>{errors.password.message}</Text>
- 
+
           )}
 
           {/* Forgot Password */}
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     alignSelf:'flex-end',
     padding:10,
     paddingVertical:4,
-    borderRadius:10
+    borderRadius:10,
   },
   forgotPassword: {alignSelf: 'flex-end', marginBottom: spacing.lg},
   forgotPasswordText: {color: colors.white, fontSize: typography.fontSize.sm},

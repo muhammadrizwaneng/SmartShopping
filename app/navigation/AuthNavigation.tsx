@@ -34,8 +34,8 @@ const AuthNavigator = () => {
       <Stack.Screen name="Login" component={SignInScreen} />
       <Stack.Screen name="Signup" component={SignUpScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen 
-        name="signupStep2" 
+      <Stack.Screen
+        name="signupStep2"
         component={SignUp_Step2}
       />
     </Stack.Navigator>

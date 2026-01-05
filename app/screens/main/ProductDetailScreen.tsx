@@ -6,18 +6,20 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
-  Modal,
+  StatusBar,
   Alert,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faStar, faTruck } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faTruck, faHeart, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import ApiConfig from '../../config/api-config';
 import axios from 'axios';
 import { useIsFocused } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { addToCart, CartItem } from '../../redux/cartSlice';
 import { addToRecentlyViewed } from '../../redux/productSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import AuthModal from '../../components/AuthModal';
+import { colors, typography, spacing } from '../../theme';
+import { Button } from '../../components';
 
 interface ProductImage {
   id: string;
@@ -62,6 +64,9 @@ const ProductDetailScreen = (props: any) => {
   const [activeMainImage, setActiveMainImage] = useState<string | null>(null);
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
+  const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const fetchProductDetails = async (product_id: string) => {
     const PRODUCT_ID = product_id;
     const URL = `${ApiConfig.BASE_URL}${ApiConfig.FETCH_PRODUCTS}/${PRODUCT_ID}`;
@@ -84,7 +89,7 @@ const ProductDetailScreen = (props: any) => {
   };
 
   useEffect(() => {
-    if (props?.route?.params?.product != "" && props?.route?.params?.product != null) {
+    if (props?.route?.params?.product != '' && props?.route?.params?.product != null) {
 
       fetchProductDetails(props?.route?.params?.product);
     }
@@ -125,12 +130,18 @@ const ProductDetailScreen = (props: any) => {
   };
 
   const handleAddToCart = () => {
-    if (!productData) return;
+    if (!isLoggedIn) {
+      setPendingAction('cart');
+      setIsAuthModalVisible(true);
+      return;
+    }
+
+    if (!productData) {return;}
 
     // For products with variants, use the selected variant's details
     if (productData.has_variants && productData.variants?.length > 0) {
       const selectedVariant = productData.variants[selectedVariantIndex];
-      if (!selectedVariant) return;
+      if (!selectedVariant) {return;}
 
       const cartItem: Omit<CartItem, 'quantity'> = {
         id: selectedVariant.id,
@@ -159,20 +170,40 @@ const ProductDetailScreen = (props: any) => {
     }
   };
 
+  const handleAddToWishlist = () => {
+    if (!isLoggedIn) {
+      setPendingAction('wishlist');
+      setIsAuthModalVisible(true);
+      return;
+    }
+    Alert.alert('Wishlist', 'Product added to wishlist!');
+  };
+
+  const handleAuthSuccess = () => {
+    if (pendingAction === 'cart') {
+      handleAddToCart();
+    } else if (pendingAction === 'wishlist') {
+      handleAddToWishlist();
+    }
+    setPendingAction(null);
+  };
+
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.topSectionBackground}>
-        <View style={{ height: 250, marginBottom: 20 }}>
-          <Image
-            source={{ uri: activeMainImage || '' }}
-            style={styles.mainImage}
-            resizeMode="contain"
-          />
-        </View>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      
+      {/* Product Image Gallery */}
+      <View style={styles.imageSection}>
+        <Image
+          source={{ uri: activeMainImage || '' }}
+          style={styles.mainImage}
+          resizeMode="cover"
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.galleryContainer}>
+          style={styles.galleryContainer}
+        >
           {[productData?.main_image_url, ...(productData?.gallery_images || [])]
             .filter(url => url)
             .map((url, index) => {
@@ -184,11 +215,12 @@ const ProductDetailScreen = (props: any) => {
                   style={[
                     styles.thumbnailWrapper,
                     isSelected && styles.thumbnailWrapperSelected,
-                  ]}>
+                  ]}
+                >
                   <Image
                     source={{ uri: url }}
                     style={styles.thumbnailImage}
-                    resizeMode="contain"
+                    resizeMode="cover"
                   />
                 </TouchableOpacity>
               );
@@ -196,156 +228,125 @@ const ProductDetailScreen = (props: any) => {
         </ScrollView>
       </View>
 
+      {/* Product Info */}
       <View style={styles.infoContainer}>
         <Text style={styles.productName}>{productData?.name}</Text>
-        <Text style={styles.brand}>{productData?.brand}</Text>
-        <Text style={styles.categoryBreadcrumb}>
-          {productData?.category_name || 'Category Name Lookup Needed'}
-        </Text>
-
-        {/* Tags/Chips */}
-        <View style={styles.tagsContainer}>
-          {productData?.tags?.map((tag: any, index: number) => (
-            <Text key={index} style={styles.tagChip}>
-              {tag}
-            </Text>
-          ))}
-        </View>
-
-        {/* Price Row */}
-        <View style={styles.priceRow}>
-          <View style={styles.priceTextGroup}>
-            <Text style={styles.discountPrice}>
-              {displayPrice ? `$${displayPrice.toFixed(2)}` : 'Price Varies'}
-            </Text>
-
-            {productData?.has_variants && productData.variants[selectedVariantIndex]?.discountprice != null && (
-              <Text style={styles.basePrice}>
-                {productData?.has_variants
-                  ? `$${productData.variants[selectedVariantIndex]?.price.toFixed(2)}`
-                  : `$${productData?.price.toFixed(2)}`
-                }
-              </Text>
-            )}
-
-            {productData?.price && productData?.price > displayPrice && (
-              <Text style={styles.basePrice}>
-                ${productData?.price.toFixed(2)}
-              </Text>
-            )}
+        
+        {/* Price and Actions */}
+        <View style={styles.priceSection}>
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>${displayPrice ? displayPrice.toFixed(2) : 'Price Varies'}</Text>
+            <TouchableOpacity style={styles.wishlistButton} onPress={handleAddToWishlist}>
+              <FontAwesomeIcon icon={faHeart} size={20} color={colors.white} />
+            </TouchableOpacity>
           </View>
-
-          {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent != null) || (productData?.discount_percent)) && (
-            <View style={styles.discountChip}>
-              <Text style={styles.discountText}>
-                {((productData?.has_variants && productData.variants[selectedVariantIndex]?.discount_percent) || (productData?.discount_percent))}% OFF
-              </Text>
-            </View>
-          )}
+          
+          <View style={styles.ratingRow}>
+            {[...Array(5)].map((_, i) => (
+              <FontAwesomeIcon
+                key={i}
+                icon={faStar}
+                size={16}
+                color={i < Math.floor(productData?.rating || 0) ? colors.rating : colors.textLight}
+                style={{ marginRight: 2 }}
+              />
+            ))}
+            <Text style={styles.reviewsText}>({productData?.reviews_count || 0} reviews)</Text>
+          </View>
         </View>
-        <View style={styles.ratingRow}>
-          {[...Array(5)].map((_, i) => (
-            <FontAwesomeIcon
-              key={i}
-              icon={faStar}
-              size={14}
-              color={
-                i < Math.floor(productData?.rating || 0) ? '#fbbf24' : '#ccc'
-              }
-              style={{ marginRight: 2 }}
-            />
-          ))}
-          <Text style={styles.reviewsText}>
-            ({productData?.reviews_count || 0} reviews)
+
+        {/* Description */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.description}>
+            {productData?.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam arcu mauris, scelerisque eu mauris id, pretium pulvinar sapien.'}
           </Text>
         </View>
 
+        {/* Variants */}
         {productData?.has_variants && productData?.variants?.length > 0 && (
-          <View>
-            <Text style={styles.variantTitle}>Variants</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Variations</Text>
             <View style={styles.variantsContainer}>
               {productData?.variants.map((v: any, index: number) => (
-                <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity
-                    onPress={() => handleVariantSelect(index)}
-                    style={[
-                      styles.variantChip,
-                      index === selectedVariantIndex &&
-                      styles.variantChipSelected,
-                    ]}>
-                    <Text
-                      style={[
-                        styles.variantText,
-                        index === selectedVariantIndex &&
-                        styles.variantTextSelected,
-                      ]}>
-                      {v.name}
-                    </Text>
-                  </TouchableOpacity>
-                  <View style={[
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleVariantSelect(index)}
+                  style={[
                     styles.variantChip,
-                    index === selectedVariantIndex &&
-                    styles.variantChipSelected,
-                  ]}>
-                    <Text style={[
+                    index === selectedVariantIndex && styles.variantChipSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
                       styles.variantText,
-                      index === selectedVariantIndex &&
-                      styles.variantTextSelected,
-                    ]}> ({v.stock} left) </Text>
-                  </View>
-                </View>
+                      index === selectedVariantIndex && styles.variantTextSelected,
+                    ]}
+                  >
+                    {v.name}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.variantStock,
+                      index === selectedVariantIndex && styles.variantStockSelected,
+                    ]}
+                  >
+                    ({v.stock} left)
+                  </Text>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
         )}
 
-        <View style={[styles.sizeStockRow]}>
-          <View style={styles.stockContainer}>
-            <Text style={styles.stockText}>
-              {isInStock ? '✓ In Stock' : '✕ Out of Stock'}
-            </Text>
-            <Text style={styles.stockTextSmall}>
-              {productData?.has_variants
-                ? `(${displayStock} total)`
-                : `(${displayStock} left)`}
+        {/* Stock Status */}
+        <View style={styles.stockSection}>
+          <View style={[
+            styles.stockChip,
+            isInStock ? styles.inStock : styles.outOfStock
+          ]}>
+            <Text style={[
+              styles.stockText,
+              isInStock ? styles.inStockText : styles.outOfStockText
+            ]}>
+              {isInStock ? 'In Stock' : 'Out of Stock'}
             </Text>
           </View>
         </View>
 
-        {/* Features */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Features</Text>
-          {productData?.features?.map((f: any, index: number) => (
-            <View key={index} style={styles.featureRow}>
-              <Text style={styles.featureLabel}>{f.label}</Text>
-              <Text style={styles.featureValue}>{f.value}</Text>
-            </View>
-          ))}
-        </View>
-
+        {/* Delivery Options */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Delivery Options</Text>
-          <View style={styles.deliveryRow}>
-            {productData?.delivery_options?.map((option: any, index: number) => (
-              <View key={index} style={styles.deliveryChip}>
-                <FontAwesomeIcon
-                  icon={faTruck}
-                  size={14}
-                  color="#6366F1"
-                  style={{ marginRight: 5 }}
-                />
-                <Text style={styles.deliveryText}>{option}</Text>
-              </View>
-            ))}
+          <View style={styles.deliveryContainer}>
+            <View style={styles.deliveryOption}>
+              <FontAwesomeIcon icon={faTruck} size={16} color={colors.primary} />
+              <Text style={styles.deliveryText}>Free Delivery</Text>
+            </View>
+            <View style={styles.deliveryOption}>
+              <FontAwesomeIcon icon={faTruck} size={16} color={colors.primary} />
+              <Text style={styles.deliveryText}>Express Delivery</Text>
+            </View>
           </View>
         </View>
       </View>
 
+      {/* Footer Actions */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.cartButton} onPress={handleAddToCart}>
-          <Text style={styles.cartButtonText}>Add to Cart</Text>
-        </TouchableOpacity>
+        <Button
+          title="Add to Cart"
+          onPress={handleAddToCart}
+          disabled={!isInStock}
+          variant="primary"
+          size="lg"
+          style={styles.addToCartButton}
+        />
       </View>
+
+      <AuthModal
+        isVisible={isAuthModalVisible}
+        onClose={() => setIsAuthModalVisible(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </ScrollView>
   );
 };
@@ -353,347 +354,186 @@ const ProductDetailScreen = (props: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F5EF',
+    backgroundColor: colors.background,
   },
-  topSectionBackground: {
-    backgroundColor: '#F9F5EF',
-    paddingTop: 30,
-    paddingBottom: 20,
+  imageSection: {
+    height: 300,
+    backgroundColor: colors.background,
   },
   mainImage: {
     width: '100%',
-    height: '100%',
-    alignSelf: 'center',
-    marginBottom: 20,
+    height: 250,
+    backgroundColor: colors.lightGray,
   },
   galleryContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.sm,
   },
   thumbnailWrapper: {
-    width: 80,
+    width: 60,
     height: 60,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderWidth: 1,
-    borderColor: '#E7D7C7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
+    borderRadius: spacing.borderRadius.md,
+    backgroundColor: colors.lightGray,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    marginRight: spacing.sm,
     overflow: 'hidden',
+  },
+  thumbnailWrapperSelected: {
+    borderColor: colors.primary,
   },
   thumbnailImage: {
     width: '100%',
     height: '100%',
   },
   infoContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30,
-    zIndex: 10,
-    paddingTop: 25,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: spacing.borderRadius['4xl'],
+    borderTopRightRadius: spacing.borderRadius['4xl'],
+    marginTop: -spacing.lg,
+    paddingTop: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl * 2,
   },
   productName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111',
-    marginBottom: 4,
+    fontFamily: typography.fontFamily.bold,
+    fontSize: typography.fontSize.xl,
+    fontWeight: 'bold' as const,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
-  brand: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  categoryBreadcrumb: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 0,
-    marginBottom: 10,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    marginBottom: 15,
-  },
-  tagChip: {
-    backgroundColor: '#F9F5EF',
-    color: '#666',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    marginRight: 8,
-    fontSize: 13,
+  priceSection: {
+    marginBottom: spacing.xl,
   },
   priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: spacing.sm,
   },
-  priceTextGroup: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+  price: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: typography.fontSize['12xl'],
+    fontWeight: 'bold' as const,
+    color: colors.textPrimary,
+    letterSpacing: -0.26,
   },
-  discountPrice: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111',
-    marginRight: 10,
-  },
-  basePrice: {
-    fontSize: 18,
-    color: '#999',
-    textDecorationLine: 'line-through',
-  },
-  discountChip: {
-    backgroundColor: '#D72A60',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-  },
-  discountText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  discountInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  addDiscountButton: {
-    backgroundColor: '#BD0B0B',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    // flex: 1,
-    alignSelf: "flex-start"
-  },
-  addDiscountButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    alignSelf: "flex-start"
-  },
-  discountStatusRow: {
-    marginBottom: 20,
-  },
-  discountStatusTextSuccess: {
-    fontSize: 14,
-    color: '#38A169',
-    fontWeight: '600',
-  },
-  discountStatusTextHint: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+  wishlistButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
   },
   ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
   },
   reviewsText: {
-    marginLeft: 6,
-    fontSize: 14,
-    color: '#666',
+    fontFamily: typography.fontFamily.sans,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
   },
-  variantTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 8,
+  section: {
+    marginBottom: spacing.xl,
+  },
+  sectionTitle: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: typography.fontSize.lg,
+    fontWeight: 'bold' as const,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
+  description: {
+    fontFamily: typography.fontFamily.sans,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    lineHeight: 22,
   },
   variantsContainer: {
-    marginBottom: 20,
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: spacing.sm,
   },
   variantChip: {
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginRight: 10,
+    backgroundColor: colors.lightGray,
+    borderRadius: spacing.borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: '#F5F5F5',
-    marginBottom: 10,
-    alignSelf: 'flex-start',
+    borderColor: 'transparent',
   },
   variantChipSelected: {
-    backgroundColor: '#ef8402ff',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   variantText: {
-    color: '#333',
-    fontWeight: '500',
+    fontFamily: typography.fontFamily.sans,
+    fontSize: typography.fontSize.sm,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
   },
   variantTextSelected: {
-    color: '#fff',
+    color: colors.white,
   },
-  sizeStockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 20,
+  variantStock: {
+    fontFamily: typography.fontFamily.sans,
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
-  stockContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  variantStockSelected: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  stockSection: {
+    marginBottom: spacing.xl,
+  },
+  stockChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.borderRadius.md,
+    alignSelf: 'flex-start',
+  },
+  inStock: {
+    backgroundColor: colors.success,
+  },
+  outOfStock: {
+    backgroundColor: colors.error,
   },
   stockText: {
-    color: '#38A169',
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: typography.fontFamily.sans,
+    fontSize: typography.fontSize.sm,
+    fontWeight: '600' as const,
   },
-  stockTextSmall: {
-    color: '#666',
-    fontSize: 12,
-    marginLeft: 4,
+  inStockText: {
+    color: colors.white,
   },
-  section: { marginTop: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
-  featureRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingVertical: 8,
+  outOfStockText: {
+    color: colors.white,
   },
-  featureLabel: { fontSize: 14, color: '#666' },
-  featureValue: { fontSize: 14, fontWeight: '500', color: '#111' },
-  deliveryRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
-  deliveryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ede9fe',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginTop: 6,
+  deliveryContainer: {
+    flexDirection: 'row' as const,
+    gap: spacing.md,
   },
-  deliveryText: { color: '#6366F1', fontSize: 13, fontWeight: '500' },
+  deliveryOption: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: spacing.sm,
+  },
+  deliveryText: {
+    fontFamily: typography.fontFamily.sans,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
   footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    backgroundColor: colors.white,
   },
-  cartButton: {
-    backgroundColor: '#6366F1',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cartButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  thumbnailWrapperSelected: {
-    borderColor: '#ef8402ff',
-    borderWidth: 3,
-  },
-
-  // === CENTERED MODAL STYLES ===
-  centeredModalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 20,
-  },
-  centeredModalView: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 25,
-    width: '90%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalContent: {
-    width: '100%',
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#111',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  discountTextInputModal: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    color: '#111',
-    backgroundColor: '#f9f9f9',
-    marginBottom: 20,
-  },
-  suggestionsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 12,
-  },
-  suggestionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 25,
-  },
-  suggestionChip: {
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  suggestionText: {
-    color: '#333',
-    fontWeight: '500',
-    fontSize: 14,
-  },
-  modalButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  applyButton: {
-    backgroundColor: '#6366F1',
-  },
-  applyButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  applyButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  addToCartButton: {
+    marginBottom: spacing.md,
   },
 });
 

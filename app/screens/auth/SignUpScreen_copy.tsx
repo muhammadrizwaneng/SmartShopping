@@ -52,7 +52,7 @@ const SignupScreen = ({navigation}: any) => {
       <LinearGradient
         colors={[colors.gradientStart, colors.gradientEnd]}
         style={styles.gradient}>
-        
+
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Animatable.View animation="fadeInDown" style={styles.header}>
             <FontAwesomeIcon icon={faPerson} size={60} color={colors.white}/>
@@ -100,10 +100,10 @@ const SignupScreen = ({navigation}: any) => {
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}>
-                <FontAwesomeIcon 
-                   icon={showPassword ? faEye : faEyeSlash} 
-                   size={20} 
-                   color={colors.gray} 
+                <FontAwesomeIcon
+                   icon={showPassword ? faEye : faEyeSlash}
+                   size={20}
+                   color={colors.gray}
                  />
               </TouchableOpacity>
             </View>
@@ -121,10 +121,10 @@ const SignupScreen = ({navigation}: any) => {
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.eyeIcon}>
-                <FontAwesomeIcon 
-                   icon={showConfirmPassword ? faEye : faEyeSlash} 
-                   size={20} 
-                   color={colors.gray} 
+                <FontAwesomeIcon
+                   icon={showConfirmPassword ? faEye : faEyeSlash}
+                   size={20}
+                   color={colors.gray}
                  />
               </TouchableOpacity>
             </View>

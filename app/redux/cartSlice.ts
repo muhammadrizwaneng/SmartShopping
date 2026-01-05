@@ -52,68 +52,68 @@ const cartSlice = createSlice({
     loadCartFromStorage: (state, action: PayloadAction<CartState>) => {
       return action.payload;
     },
-    
+
     // Add item to cart
     addToCart: (state, action: PayloadAction<Omit<CartItem, 'quantity'>>) => {
       const existingItem = state.items.find(item => item.id === action.payload.id);
-      
+
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
         state.items.push({ ...action.payload, quantity: 1 });
       }
-      
+
       // Update totals
       state.totalItems += 1;
       state.totalPrice += action.payload.price;
-      
+
       // Save to AsyncStorage
       saveCart(state);
     },
-    
+
     // Remove item from cart
     removeFromCart: (state, action: PayloadAction<string | number>) => {
       const index = state.items.findIndex(item => item.id === action.payload);
-      
+
       if (index !== -1) {
         const item = state.items[index];
-        
+
         // Update totals
         state.totalItems -= item.quantity;
         state.totalPrice -= item.price * item.quantity;
-        
+
         // Remove item
         state.items.splice(index, 1);
-        
+
         // Save to AsyncStorage
         saveCart(state);
       }
     },
-    
+
     // Update item quantity
     updateQuantity: (state, action: PayloadAction<{id: string | number; quantity: number}>) => {
       const { id, quantity } = action.payload;
       const item = state.items.find(item => item.id === id);
-      
+
       if (item) {
         // Update totals
         state.totalItems += quantity - item.quantity;
         state.totalPrice += (quantity - item.quantity) * item.price;
-        
+
         // Update quantity
         item.quantity = quantity;
-        
+
         // Save to AsyncStorage
         saveCart(state);
       }
     },
-    
+
     // Clear cart
     clearCart: (state) => {
       state.items = [];
       state.totalItems = 0;
       state.totalPrice = 0;
-      
+
       // Clear from AsyncStorage
       AsyncStorage.removeItem('cart');
     },

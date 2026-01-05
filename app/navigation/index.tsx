@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StatusBar, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,7 +10,7 @@ import AuthNavigation from './AuthNavigation';
 import MainNavigator from './MainNavigation';
 
 // Create navigation reference
-export const navigationRef = React.createRef();
+export const navigationRef = React.createRef<NavigationContainerRef<any>>();
 
 // Add this type for your root state
 type RootState = {
@@ -33,14 +33,14 @@ const AppNavigator = () => {
     const checkAuth = async () => {
       try {
         const userData = await AsyncStorage.getItem('userData');
-        
+
         if (userData) {
           const parsedData = JSON.parse(userData);
           if (parsedData?.token) {
             dispatch(setUserInfo({
               userInfo: parsedData.user,
               token: parsedData.token,
-              isLoggedIn: true
+              isLoggedIn: true,
             }));
           }
         }
@@ -70,11 +70,8 @@ const AppNavigator = () => {
           headerShown: false,
           animation: 'fade',
         }}>
-        {isLoggedIn ? (
-          <Stack.Screen name="Main" component={MainNavigator} />
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigation} />
-        )}
+        <Stack.Screen name="Main" component={MainNavigator} />
+        <Stack.Screen name="Auth" component={AuthNavigation} />
       </Stack.Navigator>
     </NavigationContainer>
   );

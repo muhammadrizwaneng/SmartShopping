@@ -44,7 +44,7 @@ const DealCard: React.FC<DealCardProps> = ({deal, onPress}) => {
         style={styles.gradient}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}>
-        
+
         <View style={styles.header}>
           {/* Display discount text for variants with discounts */}
           <View style={styles.discountBadge}>
@@ -69,7 +69,7 @@ const DealCard: React.FC<DealCardProps> = ({deal, onPress}) => {
             style={styles.image}
             resizeMode="contain"
          />
-        
+
         <View style={styles.content}>
           <Text style={styles.name} numberOfLines={2}>
             {deal.name}

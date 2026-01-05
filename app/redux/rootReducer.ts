@@ -23,7 +23,7 @@ const rootReducer = (state: any, action: any) => {
     // Clear the rest of the state
     state = undefined;
   }
-  
+
   return appReducer(state, action);
 };
 

@@ -52,7 +52,7 @@ const ForgotPasswordScreen = ({navigation}: any) => {
       <LinearGradient
         colors={[colors.gradientStart, colors.gradientEnd]}
         style={styles.gradient}>
-        
+
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}>

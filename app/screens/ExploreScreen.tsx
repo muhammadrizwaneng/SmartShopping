@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
@@ -7,11 +7,11 @@ import {
   Image,
   Text,
   StyleSheet,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const ExploreScreen = () => {
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
 
   const navigation = useNavigation();
 
@@ -27,23 +27,23 @@ const ExploreScreen = () => {
 
   const exploreData = [
     {
-      id: "1",
-      title: "Hooded Jacket",
-      price: "$99.99",
-      image: require("../assets/images/one.jpg"),
+      id: '1',
+      title: 'Hooded Jacket',
+      price: '$99.99',
+      image: require('../assets/images/one.jpg'),
     },
     {
-      id: "2",
-      title: "Casual Shirt",
-      price: "$49.99",
-      image: require("../assets/images/one.jpg"),
+      id: '2',
+      title: 'Casual Shirt',
+      price: '$49.99',
+      image: require('../assets/images/one.jpg'),
     },
   ];
 
   const categoryData = [
-    { id: "1", title: "T-Shirt", image: require("../assets/images/one.jpg") },
-    { id: "2", title: "Pant", image: require("../assets/images/one.jpg") },
-    { id: "3", title: "Dress", image: require("../assets/images/one.jpg") },
+    { id: '1', title: 'T-Shirt', image: require('../assets/images/one.jpg') },
+    { id: '2', title: 'Pant', image: require('../assets/images/one.jpg') },
+    { id: '3', title: 'Dress', image: require('../assets/images/one.jpg') },
   ];
 
   return (
@@ -57,7 +57,7 @@ const ExploreScreen = () => {
         <TouchableOpacity style={styles.notificationContainer}>
           <Text style={styles.icon}>🔔</Text>
         </TouchableOpacity>
-        <Text onPress={() => navigation.navigate("profile")}>Profile</Text>
+        <Text onPress={() => navigation.navigate('profile')}>Profile</Text>
       </View>
 
       {/* Search */}
@@ -76,7 +76,7 @@ const ExploreScreen = () => {
       {/* Card */}
       <View style={styles.cardContainer}>
         <Image
-          source={require("../assets/images/one.jpg")}
+          source={require('../assets/images/one.jpg')}
           style={styles.cardImage}
         />
         <View style={styles.cardContent}>
@@ -120,24 +120,24 @@ export default ExploreScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
     paddingVertical: 24,
   },
   headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
   locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   locationText: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#b5651d",
+    fontWeight: 'bold',
+    color: '#b5651d',
     marginLeft: 6,
   },
   notificationContainer: {
@@ -147,15 +147,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
   searchInput: {
     flex: 1,
     height: 40,
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: '#d1d5db',
     borderRadius: 50,
     paddingHorizontal: 16,
   },
@@ -164,93 +164,93 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   cardContainer: {
-    flexDirection: "row",
-    backgroundColor: "#FFECB3",
+    flexDirection: 'row',
+    backgroundColor: '#FFECB3',
     borderRadius: 8,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 16,
   },
   cardImage: {
-    width: "50%",
+    width: '50%',
     height: 200,
-    resizeMode: "cover",
+    resizeMode: 'cover',
   },
   cardContent: {
     flex: 1,
     padding: 16,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#424242",
+    fontWeight: 'bold',
+    color: '#424242',
   },
   cardDescription: {
     marginTop: 8,
-    color: "#757575",
+    color: '#757575',
   },
   cardButton: {
-    backgroundColor: "#4E342E",
+    backgroundColor: '#4E342E',
     borderRadius: 4,
     paddingVertical: 8,
     paddingHorizontal: 16,
     marginTop: 16,
   },
   cardButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: 'bold',
   },
   categoryContainer: {
     marginBottom: 16,
   },
   categoryTitle: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#1f2937",
+    fontWeight: 'bold',
+    color: '#1f2937',
     marginBottom: 8,
   },
   categoryList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   categoryItem: {
-    width: "30%",
-    alignItems: "center",
+    width: '30%',
+    alignItems: 'center',
     marginBottom: 12,
   },
   categoryImage: {
     width: 60,
     height: 60,
-    resizeMode: "cover",
+    resizeMode: 'cover',
     borderRadius: 30,
   },
   categoryItemText: {
     marginTop: 4,
-    color: "#1f2937",
+    color: '#1f2937',
   },
   productContainer: {
     flex: 1,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: '#f3f4f6',
     borderRadius: 8,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 16,
     marginHorizontal: 4,
   },
   productImage: {
-    width: "100%",
+    width: '100%',
     height: 140,
-    resizeMode: "cover",
+    resizeMode: 'cover',
   },
   productDetails: {
     padding: 12,
   },
   productTitle: {
-    fontWeight: "bold",
-    color: "#1f2937",
+    fontWeight: 'bold',
+    color: '#1f2937',
   },
   productPrice: {
-    color: "#f97316",
+    color: '#f97316',
     marginTop: 4,
   },
   flatListContent: {

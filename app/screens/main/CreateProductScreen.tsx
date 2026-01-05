@@ -149,9 +149,9 @@ const CreateProductScreen = () => {
 
   const handleAddGalleryImage = () => {
     if (galleryFields.length < MAX_GALLERY_IMAGES) {
-      appendGallery({ value: "" } as any);
+      appendGallery({ value: '' } as any);
     } else {
-      Alert.alert("Limit Reached", `You can only add a maximum of ${MAX_GALLERY_IMAGES} gallery images.`);
+      Alert.alert('Limit Reached', `You can only add a maximum of ${MAX_GALLERY_IMAGES} gallery images.`);
     }
   };
 
@@ -204,7 +204,7 @@ const CreateProductScreen = () => {
     // to satisfy Pydantic's 'float' requirement.
     ['base_price', 'discount_price'].forEach(field => {
       if (sanitizedData[field] === '') {
-        // Setting to null or undefined makes it null in the JSON payload, 
+        // Setting to null or undefined makes it null in the JSON payload,
         // which Pydantic's Optional[float] handles correctly.
         sanitizedData[field] = null;
       }
@@ -231,12 +231,12 @@ const CreateProductScreen = () => {
 
     // const dataToSend = {
     //   ...data,
-    //   category: data.category_id, 
+    //   category: data.category_id,
     //   gallery_images: data.gallery_images.filter(
     //     url => url && url.trim() !== '',
     //   ),
     // };
-    // delete dataToSend.category_name; 
+    // delete dataToSend.category_name;
 
     // if (dataToSend.has_variants) {
     //     delete dataToSend.price;
@@ -265,7 +265,7 @@ const CreateProductScreen = () => {
           // },
         }
       );
-      console.log("-----response", response)
+      console.log('-----response', response);
       if (response.status === 201 || response.status === 200) {
         console.log('Product created successfully:', response.data);
         // Add to Redux store
@@ -435,7 +435,7 @@ const CreateProductScreen = () => {
               control={control}
               name="tags"
               rules={{
-                validate: value => value.length > 0 || "At least one tag must be selected.",
+                validate: value => value.length > 0 || 'At least one tag must be selected.',
               }}
               render={({ field: { value } }) => (
                 <View style={styles.tagsRow}>
@@ -505,7 +505,7 @@ const CreateProductScreen = () => {
                 control={control}
                 name="variants"
                 rules={{
-                  validate: value => value.length > 0 || "At least one variant is required."
+                  validate: value => value.length > 0 || 'At least one variant is required.',
                 }}
                 render={() => <></>}
               />
@@ -525,7 +525,7 @@ const CreateProductScreen = () => {
                         style={[
                           styles.featureInput,
                           { flex: 1.5, marginRight: 8 }, // 👈 Adjusted flex for 3 inputs
-                          errors.variants?.[index]?.name && styles.inputError
+                          errors.variants?.[index]?.name && styles.inputError,
                         ]}
                         placeholder="Variant Name"
                         value={value}
@@ -542,15 +542,15 @@ const CreateProductScreen = () => {
                       required: 'Price is required.',
                       pattern: {
                         value: /^\d+(\.\d{1,2})?$/,
-                        message: "Invalid price."
-                      }
+                        message: 'Invalid price.',
+                      },
                     }}
                     render={({ field: { onChange, value } }) => (
                       <TextInput
                         style={[
                           styles.featureInput,
                           { flex: 1, marginRight: 8 }, // 👈 Adjusted flex
-                          errors.variants?.[index]?.price && styles.inputError
+                          errors.variants?.[index]?.price && styles.inputError,
                         ]}
                         placeholder="Price"
                         keyboardType="numeric"
@@ -568,15 +568,15 @@ const CreateProductScreen = () => {
                       required: 'Stock is required.',
                       pattern: {
                         value: /^\d+$/,
-                        message: "Must be a whole number."
-                      }
+                        message: 'Must be a whole number.',
+                      },
                     }}
                     render={({ field: { onChange, value } }) => (
                       <TextInput
                         style={[
                           styles.featureInput,
                           { flex: 1, marginRight: 8 }, // 👈 Adjusted flex
-                          errors.variants?.[index]?.stock && styles.inputError
+                          errors.variants?.[index]?.stock && styles.inputError,
                         ]}
                         placeholder="Stock"
                         keyboardType="numeric"
@@ -618,8 +618,8 @@ const CreateProductScreen = () => {
                     required: 'Price is required.',
                     pattern: {
                       value: /^\d+(\.\d{1,2})?$/,
-                      message: "Must be a valid price."
-                    }
+                      message: 'Must be a valid price.',
+                    },
                   }}
                   render={({ field: { onChange, value } }) => (
                     <TextInput
@@ -642,8 +642,8 @@ const CreateProductScreen = () => {
                   required: 'Stock is required.',
                   pattern: {
                     value: /^\d+$/,
-                    message: "Must be a whole number."
-                  }
+                    message: 'Must be a whole number.',
+                  },
                 }}
                 render={({ field: { onChange, value } }) => (
                   <TextInput
@@ -695,7 +695,7 @@ const CreateProductScreen = () => {
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitle}>Key Features <Text style={styles.requiredStar}>*</Text></Text>
-              <TouchableOpacity onPress={() => appendFeature({ label: "", value: "" })} style={styles.addButton}>
+              <TouchableOpacity onPress={() => appendFeature({ label: '', value: '' })} style={styles.addButton}>
                 <FontAwesomeIcon icon={faPlus} size={14} color="#6366F1" />
               </TouchableOpacity>
             </View>
@@ -705,7 +705,7 @@ const CreateProductScreen = () => {
               control={control}
               name="features"
               rules={{
-                validate: value => value.length > 0 || "At least one feature is required."
+                validate: value => value.length > 0 || 'At least one feature is required.',
               }}
               render={() => <></>}
             />
@@ -781,7 +781,7 @@ const CreateProductScreen = () => {
               <Controller
                 control={control}
                 name="main_image_url"
-                rules={{ required: "Main Image is required." }}
+                rules={{ required: 'Main Image is required.' }}
                 render={({ field: { value } }) => (
                   <TouchableOpacity
                     style={[styles.imagePickerPlaceholder, errors.main_image_url && styles.inputError]}

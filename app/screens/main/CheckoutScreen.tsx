@@ -32,7 +32,7 @@ const CheckoutScreen = () => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const handleApplyVoucher = async () => {
-        if (!voucher.trim()) return;
+        if (!voucher.trim()) {return;}
         try {
             const response = await CallServiceFor(ApiConfig.VOUCHER_VALIDATE, 'post', { code: voucher });
             if (response.status === 200) {
@@ -67,7 +67,7 @@ const CheckoutScreen = () => {
             const response = await CallServiceFor(ApiConfig.CREATE_ORDER, 'post', orderPayload);
             if (response.status === 200 || response.status === 201) {
                 Alert.alert('Success', 'Order placed successfully!', [
-                    { text: 'OK', onPress: () => navigation.navigate('Home') }
+                    { text: 'OK', onPress: () => navigation.navigate('Home') },
                 ]);
             }
         } catch (error) {
