@@ -10,7 +10,6 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(async function (config) {
   let token = await AsyncStorage.getItem('token');
 
-  config.baseURL = ApiConfig.BASE_URL;
 
   if (token == 'null' || token == null) {
     token = '';

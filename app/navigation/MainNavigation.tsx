@@ -27,7 +27,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import CartScreen from '../screens/main/CartScreen';
 import UserDashboardScreen from '../screens/main/UserDashboard';
 import SearchScreen from '../screens/main/SearchScreen';
-import CheckoutScreen from '../screens/main/CheckoutScreen';
+
 import WishlistScreen from '../screens/main/WishlistScreen';
 import ProductOrderScreen from '../screens/ProductOrderScreen';
 import ProfileDetailScreen from '../screens/main/ProfileDetailScreen';
@@ -83,11 +83,7 @@ const HomeStack = () => (
       options={{ headerShown: false }}
     />
 
-    <Stack.Screen
-      name="Checkout"
-      component={CheckoutScreen}
-      options={{ headerShown: false }}
-    />
+
 
   </Stack.Navigator>
 );
@@ -227,30 +223,35 @@ const MainNavigator = () => {
         component={CartScreen}
         options={{
           tabBarLabel: 'Cart',
-          tabBarIcon: ({ focused, color, size }) => (
-            <View style={{ position: 'relative' }}>
-              <FontAwesomeIcon
-                icon={faShoppingCart}
-                size={size}
-                color={color}
-              />
-              <View style={{
-                position: 'absolute',
-                top: -5,
-                right: -8,
-                backgroundColor: 'red',
-                borderRadius: 10,
-                width: 20,
-                height: 20,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-                <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-                  {useSelector((state: any) => state.cart.items?.length) || 0}
-                </Text>
+          tabBarIcon: ({ focused, color, size }) => {
+            const itemCount = useSelector((state: any) => state.cart.items?.length) || 0;
+            return (
+              <View style={{ position: 'relative' }}>
+                <FontAwesomeIcon
+                  icon={faShoppingCart}
+                  size={size}
+                  color={color}
+                />
+                {itemCount > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -8,
+                    backgroundColor: 'red',
+                    borderRadius: 10,
+                    width: 20,
+                    height: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                    <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+                      {itemCount}
+                    </Text>
+                  </View>
+                )}
               </View>
-            </View>
-          ),
+            );
+          },
         }}
       />
       <Tab.Screen

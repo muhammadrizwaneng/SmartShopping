@@ -8,6 +8,7 @@ import { setUserInfo } from '../redux/userSlice';
 
 import AuthNavigation from './AuthNavigation';
 import MainNavigator from './MainNavigation';
+import CheckoutScreen from '../screens/main/CheckoutScreen';
 
 // Create navigation reference
 export const navigationRef = React.createRef<NavigationContainerRef<any>>();
@@ -71,6 +72,7 @@ const AppNavigator = () => {
           animation: 'fade',
         }}>
         <Stack.Screen name="Main" component={MainNavigator} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
         <Stack.Screen name="Auth" component={AuthNavigation} />
       </Stack.Navigator>
     </NavigationContainer>

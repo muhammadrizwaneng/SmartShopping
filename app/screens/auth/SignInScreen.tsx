@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
-import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faEnvelope,
   faEye,
@@ -22,14 +22,14 @@ import {
   faStore,
   faHeart,
 } from '@fortawesome/free-solid-svg-icons';
-import {colors, typography, spacing} from '../../theme';
-import {Button, Input} from '../../components';
-import {useDispatch} from 'react-redux';
-import {loginUser} from '../../redux/userSlice';
+import { colors, typography, spacing } from '../../theme';
+import { Button, Input } from '../../components';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../../redux/userSlice';
 
 // React Hook Form + Yup
-import {useForm, Controller} from 'react-hook-form';
-import {yupResolver} from '@hookform/resolvers/yup';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
 const schema = yup.object({
@@ -40,7 +40,7 @@ const schema = yup.object({
     .required('Password is required'),
 });
 
-const LoginScreen = ({navigation}: any) => {
+const LoginScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,12 +48,12 @@ const LoginScreen = ({navigation}: any) => {
   const {
     control,
     handleSubmit,
-    formState: {errors},
+    formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = async (data: {email: string; password: string}) => {
+  const onSubmit = async (data: { email: string; password: string }) => {
     console.log('Login Data:', data);
     try {
       setIsLoading(true);
@@ -63,6 +63,12 @@ const LoginScreen = ({navigation}: any) => {
       };
       const response = await dispatch(loginUser(payload) as any).unwrap();
       console.log('Login Success:', response);
+      if (response && (response.status === 200 || response.access_token)) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
+      }
     } catch (e) {
       console.log('Login Error:', e);
       Alert.alert('Error', 'Invalid email or password');
@@ -79,9 +85,16 @@ const LoginScreen = ({navigation}: any) => {
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('LandingScreen')} style={styles.cancelButton}>
+        <TouchableOpacity
+          onPress={() => {
+            console.log('Cancel button pressed');  // <-- added console log
+            navigation.navigate('LandingScreen');
+          }}
+          style={styles.cancelButton}
+        >
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
+
       </View>
 
       <View style={styles.contentContainer}>
@@ -96,7 +109,7 @@ const LoginScreen = ({navigation}: any) => {
           <Controller
             control={control}
             name="email"
-            render={({field: {onChange, value}}) => (
+            render={({ field: { onChange, value } }) => (
               <Input
                 placeholder="Email"
                 value={value}
@@ -112,7 +125,7 @@ const LoginScreen = ({navigation}: any) => {
           <Controller
             control={control}
             name="password"
-            render={({field: {onChange, value}}) => (
+            render={({ field: { onChange, value } }) => (
               <View style={styles.passwordContainer}>
                 <FontAwesomeIcon icon={faLock} size={20} color={colors.gray} style={styles.inputIcon} />
                 <TextInput
@@ -168,8 +181,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   cancelButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
   cancelText: {
     fontFamily: typography.fontFamily.light,

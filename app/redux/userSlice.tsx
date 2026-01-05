@@ -26,11 +26,12 @@ export const loginUser = createAsyncThunk(
   async ({ email, password }: any,) => {
     console.log('Login payload:', email, password);
     try {
-      const urlFor = ApiConfig.LOGIN;
+      const urlFor = ApiConfig.BASE_URL + ApiConfig.LOGIN;
       const keyFor = {
         email,
         password,
       };
+      console.log('urlFor:', urlFor);
 
       const response = await CallServiceFor(urlFor, 'post', keyFor);
       console.log('response:', response?.status);

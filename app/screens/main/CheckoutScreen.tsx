@@ -7,8 +7,8 @@ import {
     TouchableOpacity,
     TextInput,
     Alert,
-    SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -32,7 +32,7 @@ const CheckoutScreen = () => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const handleApplyVoucher = async () => {
-        if (!voucher.trim()) {return;}
+        if (!voucher.trim()) { return; }
         try {
             const response = await CallServiceFor(ApiConfig.VOUCHER_VALIDATE, 'post', { code: voucher });
             if (response.status === 200) {
@@ -80,7 +80,7 @@ const CheckoutScreen = () => {
     return (
         <View style={styles.container}>
             <LinearGradient colors={[colors.primary, colors.gradientEnd]} style={styles.headerBackground}>
-                <SafeAreaView>
+                <SafeAreaView edges={['top', 'left', 'right']}>
                     <View style={styles.headerContent}>
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                             <FontAwesomeIcon icon={faArrowLeft} size={20} color={colors.white} />
@@ -169,7 +169,7 @@ const CheckoutScreen = () => {
                 </View>
             </ScrollView>
 
-            <SafeAreaView style={styles.footer}>
+            <SafeAreaView style={styles.footer} edges={['bottom', 'left', 'right']}>
                 <TouchableOpacity
                     style={[styles.placeOrderButton, isProcessing && styles.disabledButton]}
                     onPress={handlePlaceOrder}
